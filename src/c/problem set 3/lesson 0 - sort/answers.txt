@@ -1,0 +1,21 @@
+sort1 uses: BUBBLE SORT
+
+How do you know?:
+When parsing values that were already sorted in the correct order sort1's runtime was efficient,
+but when the order was reversed or even randomised it took a massive hit due to the number of steps it had to take
+to reorganise the values into their correct positions at larger sample sizes.
+
+sort2 uses: MERGE SORT
+
+How do you know?:
+Because sort2's average runtime to completion was similar across the 5000/10000/50000 line .txt
+files regardless of the sorting order, because the methodology of a Merge Sort and it's efficiency
+does not rely on each value's placement and relation to each other.
+
+sort3 uses: SELECTION SORT
+
+How do you know?:
+Because on average the runtime and steps taken for sort3 to complete it's execution and sort through
+the random, reversed, and sorted .txt files was within the same range for each respective index size.
+This is due to the logic of Selection Sort, having to do a full loop of the unsorted values to find
+the lowest value to place into the current index even if it is already in the correct index.
