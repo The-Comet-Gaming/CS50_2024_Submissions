@@ -65,7 +65,7 @@ int main(int argc, string argv[])
 // Update vote totals given a new vote
 bool vote(string name)
 {
-    //printf("Input Being Checked: %s\n", name);
+    // printf("Input Being Checked: %s\n", name);
     for (int loopCount = 0; loopCount < candidate_count; ++loopCount) // Iterate over each candidate
     {
         if (strcmp(candidates[loopCount].name, name) == 0)
@@ -80,21 +80,50 @@ bool vote(string name)
 // Print the winner (or winners) of the election
 void print_winner(void)
 {
-    int highestVoteCountFound = candidates[0].votes;
-    for (int loopCount = 0; loopCount < candidate_count; ++loopCount)
+    candidate toBeSwapped;
+    for (int loopCount1 = 0; loopCount1 < candidate_count; ++loopCount1)
     {
-        if (candidates[loopCount].votes > highestVoteCountFound)
+        toBeSwapped.votes = candidates[loopCount1].votes;
+        toBeSwapped.name = candidates[loopCount1].name;
+        int indexSelected = loopCount1;
+        bool higherFound = false;
+
+        for (int loopCount2 = 0; loopCount2 < candidate_count; ++loopCount2)
         {
-            highestVoteCountFound = candidates[loopCount].votes;
+            if (loopCount2 <= indexSelected)
+            {
+                continue;
+            }
+            if (toBeSwapped.votes < candidates[loopCount2].votes)
+            {
+                toBeSwapped.votes = candidates[loopCount2].votes;
+                toBeSwapped.name = candidates[loopCount2].name;
+                indexSelected = loopCount2;
+                higherFound = true;
+            }
+        }
+        if (higherFound == true)
+        {
+            candidates[indexSelected].votes = candidates[loopCount1].votes;
+            candidates[indexSelected].name = candidates[loopCount1].name;
+            candidates[loopCount1].votes = toBeSwapped.votes;
+            candidates[loopCount1].name = toBeSwapped.name;
         }
     }
 
+    int highestVote = candidates[0].votes;
+
     for (int loopCount = 0; loopCount < candidate_count; ++loopCount)
     {
-        if (candidates[loopCount].votes == highestVoteCountFound)
+        if (candidates[loopCount].votes == highestVote)
         {
             printf("%s\n", candidates[loopCount].name);
         }
+        else
+        {
+            break;
+        }
     }
+
     return;
 }
