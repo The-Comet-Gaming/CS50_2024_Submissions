@@ -65,7 +65,6 @@ int main(int argc, string argv[])
 // Update vote totals given a new vote
 bool vote(string name)
 {
-    // printf("Input Being Checked: %s\n", name);
     for (int loopCount = 0; loopCount < candidate_count; ++loopCount) // Iterate over each candidate
     {
         if (strcmp(candidates[loopCount].name, name) == 0)
