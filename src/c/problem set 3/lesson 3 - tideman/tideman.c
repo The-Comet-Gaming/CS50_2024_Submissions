@@ -101,7 +101,6 @@ int main(int argc, string argv[])
 // Update ranks given a new vote
 bool vote(int rank, string name, int ranks[])
 {
-    // looping through the candidates checking for a match
     for (int i = 0; i < candidate_count; ++i)
     {
         if (strcmp(candidates[i], name) == 0)
@@ -116,8 +115,6 @@ bool vote(int rank, string name, int ranks[])
 // Update preferences given one voter's ranks
 void record_preferences(int ranks[])
 {
-    // looping through the preference ranks giving
-    // +1 to the candidates prefered above others
     for (int i = 0; i < candidate_count; ++i)
     {
         for (int j = 0; j < candidate_count; ++j)
@@ -135,14 +132,10 @@ void record_preferences(int ranks[])
 // Record pairs of candidates where one is preferred over the other
 void add_pairs(void)
 {
-    // Looping over the candidate matchups and assigning
-    // a winner and loser to each pairing that is not a
-    // tie and hasn't already been paired
     for (int i = 0; i < candidate_count; ++i)
     {
         for (int j = 0; j < candidate_count; ++j)
         {
-            // skips over same and already paired indexes
             if (j <= i || preferences[i][j] == preferences[j][i])
             {
                 continue;
@@ -163,7 +156,6 @@ void add_pairs(void)
 // Sort pairs in decreasing order by strength of victory
 void sort_pairs(void)
 {
-    // selection sort loop for reordering the pairs
     for (int i = 0; i < pair_count; ++i)
     {
         bool matchFound = false;
@@ -198,8 +190,6 @@ void sort_pairs(void)
 // Lock pairs into the candidate graph in order, without creating cycles
 void lock_pairs(void)
 {
-    // loops through each pair, locking in the
-    // edge to if it wouldn't create a cycle
     for (int i = 0; i < pair_count; ++i)
     {
         if (CycleFound(pairs[i].winner, pairs[i].loser) == true)
@@ -214,8 +204,6 @@ void lock_pairs(void)
 // Print the winner of the election
 void print_winner(void)
 {
-    // checks through the candidates finding those who are
-    // the source/s of the graph to then print a winner/s
     for (int i = 0; i < candidate_count; ++i)
     {
         bool winnerFound = true;
@@ -247,17 +235,17 @@ bool CycleFound(int winner, int loser)
     // checks a candidate against the field to find if they are
     // locked in under another candidate and checks if the candidate
     // they are locked in under matches the loser of the current pair
-    for (int j = 0; j < candidate_count; ++j)
+    for (int i = 0; i < candidate_count; ++j)
     {
-        if (locked[j][winner] != true)
+        if (locked[i][winner] != true)
         {
             continue;
         }
-        if (j == loser)
+        if (i == loser)
         {
             return true;
         }
-        if (CycleFound(j, loser) == true)
+        if (CycleFound(i, loser) == true)
         {
             return true;
         }
