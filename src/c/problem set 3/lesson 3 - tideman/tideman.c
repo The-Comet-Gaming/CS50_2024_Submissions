@@ -235,7 +235,7 @@ bool CycleFound(int winner, int loser)
     // checks a candidate against the field to find if they are
     // locked in under another candidate and checks if the candidate
     // they are locked in under matches the loser of the current pair
-    for (int i = 0; i < candidate_count; ++j)
+    for (int i = 0; i < candidate_count; ++i)
     {
         if (locked[i][winner] != true)
         {
