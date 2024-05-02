@@ -1,5 +1,6 @@
 #include <cs50.h>
 #include <stdio.h>
+#include <string.h>
 
 // Max number of candidates
 #define MAX 9
@@ -31,6 +32,8 @@ void add_pairs(void);
 void sort_pairs(void);
 void lock_pairs(void);
 void print_winner(void);
+void AssignPairs(int winner, int loser);
+bool CycleFound(int winner, int loser);
 
 int main(int argc, string argv[])
 {
@@ -98,41 +101,154 @@ int main(int argc, string argv[])
 // Update ranks given a new vote
 bool vote(int rank, string name, int ranks[])
 {
-    // TODO
+    for (int i = 0; i < candidate_count; ++i)
+    {
+        if (strcmp(candidates[i], name) == 0)
+        {
+            ranks[rank] = i;
+            return true;
+        }
+    }
     return false;
 }
 
 // Update preferences given one voter's ranks
 void record_preferences(int ranks[])
 {
-    // TODO
+    for (int i = 0; i < candidate_count; ++i)
+    {
+        for (int j = 0; j < candidate_count; ++j)
+        {
+            if (j <= i)
+            {
+                continue;
+            }
+            ++preferences[ranks[i]][ranks[j]];
+        }
+    }
     return;
 }
 
 // Record pairs of candidates where one is preferred over the other
 void add_pairs(void)
 {
-    // TODO
+    for (int i = 0; i < candidate_count; ++i)
+    {
+        for (int j = 0; j < candidate_count; ++j)
+        {
+            if (j <= i || preferences[i][j] == preferences[j][i])
+            {
+                continue;
+            }
+            if (preferences[i][j] > preferences[j][i])
+            {
+                AssignPairs(i, j);
+            }
+            else
+            {
+                AssignPairs(j, i);
+            }
+        }
+    }
     return;
 }
 
 // Sort pairs in decreasing order by strength of victory
 void sort_pairs(void)
 {
-    // TODO
+    for (int i = 0; i < pair_count; ++i)
+    {
+        bool matchFound = false;
+        int highestFound = preferences[pairs[i].winner][pairs[i].loser];
+        int index = i;
+        int pairWinnerFound = pairs[i].winner;
+        int pairLoserFound = pairs[i].loser;
+
+        for (int j = 0; j < pair_count; ++j)
+        {
+            if (j < i)
+            {
+                continue;
+            }
+            if (highestFound < preferences[pairs[j].winner][pairs[j].loser])
+            {
+                highestFound = preferences[pairs[j].winner][pairs[j].loser];
+                index = j;
+                pairWinnerFound = pairs[j].winner;
+                pairLoserFound = pairs[j].loser;
+            }
+        }
+        pairs[index].winner = pairs[i].winner;
+        pairs[index].loser = pairs[i].loser;
+
+        pairs[i].winner = pairWinnerFound;
+        pairs[i].loser = pairLoserFound;
+    }
     return;
 }
 
 // Lock pairs into the candidate graph in order, without creating cycles
 void lock_pairs(void)
 {
-    // TODO
+    for (int i = 0; i < pair_count; ++i)
+    {
+        if (CycleFound(pairs[i].winner, pairs[i].loser) == true)
+        {
+            continue;
+        }
+        locked[pairs[i].winner][pairs[i].loser] = true;
+    }
     return;
 }
 
 // Print the winner of the election
 void print_winner(void)
 {
-    // TODO
+    for (int i = 0; i < candidate_count; ++i)
+    {
+        bool winnerFound = true;
+        for (int j = 0; j < candidate_count; ++j)
+        {
+            if (locked[j][i] == true)
+            {
+                winnerFound = false;
+                break;
+            }
+        }
+        if (winnerFound == true)
+        {
+            printf("%s\n", candidates[i]);
+        }
+    }
     return;
+}
+
+void AssignPairs(int winner, int loser)
+{
+    pairs[pair_count].winner = winner;
+    pairs[pair_count].loser = loser;
+    ++pair_count;
+}
+
+bool CycleFound(int winner, int loser)
+{
+    // checks a candidate against the field to find if they are
+    // locked in under another candidate and checks if the candidate
+    // they are locked in under matches the loser of the current pair
+    for (int i = 0; i < candidate_count; ++j)
+    {
+        if (locked[i][winner] != true)
+        {
+            continue;
+        }
+        if (i == loser)
+        {
+            return true;
+        }
+        if (CycleFound(i, loser) == true)
+        {
+            return true;
+        }
+    }
+    return false;
 }
