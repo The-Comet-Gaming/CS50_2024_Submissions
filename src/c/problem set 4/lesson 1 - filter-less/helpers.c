@@ -1,7 +1,7 @@
 #include "helpers.h"
 #include <math.h>
 
-float SetWithinRange(float value);
+float SetWithinRange(double value);
 
 // Convert image to grayscale
 void grayscale(int height, int width, RGBTRIPLE image[height][width])
@@ -31,21 +31,20 @@ void sepia(int height, int width, RGBTRIPLE image[height][width])
     {
         for (int j = 0; j < width; ++j)
         {
-            // Compute sepia values
             float sepiaRed = 0.393 * image[i][j].rgbtRed +
-                                0.769 * image[i][j].rgbtGreen + 0.189 * image[i][j].rgbtBlue;
+                             0.769 * image[i][j].rgbtGreen + 0.189 * image[i][j].rgbtBlue;
             sepiaRed = round(sepiaRed);
             sepiaRed = SetWithinRange(sepiaRed);
 
             float sepiaGreen = 0.349 * image[i][j].rgbtRed +
-                                0.686 * image[i][j].rgbtGreen + 0.168 * image[i][j].rgbtBlue;
+                               0.686 * image[i][j].rgbtGreen + 0.168 * image[i][j].rgbtBlue;
             sepiaGreen = round(sepiaGreen);
-            SetWithinRange(sepiaGreen);
+            sepiaGreen = SetWithinRange(sepiaGreen);
 
             float sepiaBlue = 0.272 * image[i][j].rgbtRed +
-                                0.534 * image[i][j].rgbtGreen + 0.131 * image[i][j].rgbtBlue;
+                              0.534 * image[i][j].rgbtGreen + 0.131 * image[i][j].rgbtBlue;
             sepiaBlue = round(sepiaBlue);
-            SetWithinRange(sepiaBlue);
+            sepiaBlue = SetWithinRange(sepiaBlue);
 
             // Update pixel with sepia values
             image[i][j].rgbtRed = sepiaRed;
@@ -59,25 +58,26 @@ void sepia(int height, int width, RGBTRIPLE image[height][width])
 // Reflect image horizontally
 void reflect(int height, int width, RGBTRIPLE image[height][width])
 {
+    //
     RGBTRIPLE buffer;
-    int oppositeEndOfImage;
+    int binaryOffset = 1;
     for (int i = 0; i < height; ++i)
     {
-        for (int j = 0; j <= width / 2; ++j)
+        for (int j = 0; j < width / 2; ++j)
         {
-            oppositeEndOfImage = width - j;
+            int oppositeIndex = width - binaryOffset - j;
 
             buffer.rgbtRed = image[i][j].rgbtRed;
             buffer.rgbtGreen = image[i][j].rgbtGreen;
             buffer.rgbtBlue = image[i][j].rgbtBlue;
 
-            image[i][j].rgbtRed = image[i][oppositeEndOfImage].rgbtRed;
-            image[i][j].rgbtGreen = image[i][oppositeEndOfImage].rgbtGreen;
-            image[i][j].rgbtBlue = image[i][oppositeEndOfImage].rgbtBlue;
+            image[i][j].rgbtRed = image[i][oppositeIndex].rgbtRed;
+            image[i][j].rgbtGreen = image[i][oppositeIndex].rgbtGreen;
+            image[i][j].rgbtBlue = image[i][oppositeIndex].rgbtBlue;
 
-            image[i][oppositeEndOfImage].rgbtRed = buffer.rgbtRed;
-            image[i][oppositeEndOfImage].rgbtGreen = buffer.rgbtGreen;
-            image[i][oppositeEndOfImage].rgbtBlue = buffer.rgbtBlue;
+            image[i][oppositeIndex].rgbtRed = buffer.rgbtRed;
+            image[i][oppositeIndex].rgbtGreen = buffer.rgbtGreen;
+            image[i][oppositeIndex].rgbtBlue = buffer.rgbtBlue;
         }
     }
     return;
@@ -98,67 +98,86 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
         }
     }
 
-    RGBTRIPLE averageRGB;
     for (int i = 0; i < height; ++i)
     {
         for (int j = 0; j < width; ++j)
         {
-            int k = 0;
             int divider = 0;
-            int rowOffset = -1;
-            int pixelOffset = -1;
-
-            averageRGB.rgbtRed = 0;
-            averageRGB.rgbtGreen = 0;
-            averageRGB.rgbtBlue = 0;
-
-            while (k < 9)
+            double averageRed = 0.0;
+            double averageGreen = 0.0;
+            double averageBlue = 0.0;
+            for (int k = -1; k < 3; ++k)
             {
-                if (i == 0 && rowOffset == -1)
+                for (int l = -1; l < 3; ++l)
                 {
-                    ++k;
-                    continue;
+                    if (i + k < 0 || i + k > height - 1)
+                    {
+                        continue;
+                    }
+                    if (j + l < 0 || j + l > width - 1)
+                    {
+                        continue;
+                    }
+                    ++divider;
+                    averageRed += copyImage[i+k][j+l].rgbtRed;
+                    averageGreen += copyImage[i+k][j+l].rgbtGreen;
+                    averageBlue += copyImage[i+k][j+l].rgbtBlue;
                 }
-                if (i == height && rowOffset == +1)
-                {
-                    ++k;
-                    continue;
-                }
-
-                if (j == 0 && pixelOffset == -1)
-                {
-                    ++k;
-                    continue;
-                }
-                if (j == width && pixelOffset == +1)
-                {
-                    ++k;
-                    continue;
-                }
-
-                averageRGB.rgbtRed += copyImage[i + rowOffset][j + pixelOffset].rgbtRed;
-                averageRGB.rgbtGreen += copyImage[i + rowOffset][j + pixelOffset].rgbtGreen;
-                averageRGB.rgbtBlue += copyImage[i + rowOffset][j + pixelOffset].rgbtBlue;
-
-                if (k % 3 == 0)
-                {
-                    ++rowOffset;
-                    pixelOffset = -1;
-                }
-
-                ++divider;
-                ++pixelOffset;
-                ++k;
             }
-            image[i][j].rgbtRed = averageRGB.rgbtRed / divider;
-            image[i][j].rgbtGreen = averageRGB.rgbtGreen / divider;
-            image[i][j].rgbtBlue = averageRGB.rgbtBlue / divider;
+            averageRed /= divider;
+            averageGreen /= divider;
+            averageBlue /= divider;
+
+            image[i][j].rgbtRed = round(averageRed);
+            image[i][j].rgbtGreen = round(averageGreen);
+            image[i][j].rgbtBlue = round(averageBlue);
         }
     }
+
+    /*
+    int searchArea = 9;
+    for (int i = 0; i < height; ++i)
+    {
+        for (int j = 0; j < width; ++j)
+        {
+            int divider = 0;
+            int offsettedRow = i + -1;
+            int offsettedPixel = j + -1;
+            double averageRed = 0.0;
+            double averageGreen = 0.0;
+            double averageBlue = 0.0;
+            for (int k = 0; k < searchArea; ++k)
+            {
+                if (offsettedRow < 0 || offsettedRow > height - 1)
+                {
+                    continue;
+                }
+                if (offsettedPixel < 0 || offsettedPixel > width - 1)
+                {
+                    continue;
+                }
+                if (k % 3 == 0)
+                {
+                    ++offsettedRow;
+                    offsettedPixel = j + -1;
+                }
+                ++divider;
+                averageRed += copyImage[offsettedRow][offsettedPixel].rgbtRed;
+                averageGreen += copyImage[offsettedRow][offsettedPixel].rgbtGreen;
+                averageBlue += copyImage[offsettedRow][offsettedPixel].rgbtBlue;
+            }
+            averageRed /= divider;
+            averageGreen /= divider;
+            averageGreen /= divider;
+            image[i][j].rgbtRed = round(averageRed);
+            image[i][j].rgbtGreen = round(averageGreen);
+            image[i][j].rgbtBlue = round(averageBlue);
+        }
+    }*/
     return;
 }
 
-float SetWithinRange(float value)
+float SetWithinRange(double value)
 {
     if (value < 0)
     {
