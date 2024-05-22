@@ -1,0 +1,21 @@
+name: Auto Assign Reviewer
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  assign-reviewer:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Auto assign reviewer
+        uses: kentaro-m/auto-assign-action@v2.2.0
+        with:
+          reviewers: |
+            ChrisMellor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
