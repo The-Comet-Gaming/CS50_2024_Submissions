@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Auto assign reviewer
-        uses: kentaro-m/auto-assign-action@v2.2.0
+        uses: kentaro-m/auto-assign-action@v2.0.0
         with:
           reviewers: |
             ChrisMellor
