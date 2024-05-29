@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int BlockSize = 512;
-
 int main(int numberOfArguments, char *cardName[])
 {
     if (numberOfArguments != 2)
@@ -20,44 +18,46 @@ int main(int numberOfArguments, char *cardName[])
         return 1;
     }
 
-    uint8_t buffer[BlockSize];
+    const int blockSize = 512;
+    uint8_t buffer[blockSize];
+    int header[5] = {0xff, 0xd8, 0xff, 0xf0, 0xe0};
 
-    char *jpgName = "###.jpg";
+    char jpgName[8] = "000.jpg";
     int jpgsWritten = 0;
-    bool writingToFile = false;
     FILE *jpg;
 
-    // While there's still data left to read from the memory card
-    while (fread(buffer, 1, BlockSize, card) == BlockSize)
+    bool writingToFile = false;
+
+    // loop while there is still more read from the card
+    while (fread(buffer, 1, blockSize, card) == blockSize)
     {
-        // check if the first 4 bytes equal the correct value/s
-        if (buffer [0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xf0) == 0xe0)
+        // check if the block has the headerBytes
+        if (buffer[0] == header[0] && buffer[1] == header[1] && buffer[2] == header[2] &&
+            (buffer[3] & header[3]) == header[4])
         {
-                // check if we have already opened jpgs
-                if (jpgsWritten >= 1)
-                {
-                    fclose(jpg);
-                }
+            // close a jpg before writing to a new one
+            if (writingToFile == true)
+            {
+                fclose(jpg);
+            }
 
-                // increase a variable for the .jpg name +1
-                sprintf(jpgName, "%03i.jpg", jpgsWritten);
-                jpgsWritten++;
-                // create a new .jpg with the name
-                jpg = fopen(jpgName, "w");
-                // set bool that says if we're writing to a file as true
-                writingToFile = true;
+            // initialize the header name
+            // increase a variable for the .jpg name +1
+            sprintf(jpgName, "%03i.jpg", jpgsWritten);
+            jpgsWritten++;
+
+            // create a new .jpg
+            jpg = fopen(jpgName, "a");
+
+            // set bool that says if we're writing to a file as true
+            writingToFile = true;
         }
 
-        //check if we're already writing to a .jpg
-        if (writingToFile == false)
+        if (writingToFile == true)
         {
-            continue;
+            fwrite(buffer, sizeof(buffer), 1, jpg);
         }
-
-        //now that we've done the checks we can write to the current .jpg
-        fwrite(buffer, sizeof(uint8_t), 1, jpg);
     }
-
     fclose(jpg);
     fclose(card);
     return 0;

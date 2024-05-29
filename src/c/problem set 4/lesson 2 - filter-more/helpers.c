@@ -62,7 +62,6 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
             float averageRed = 0.0;
             float averageGreen = 0.0;
             float averageBlue = 0.0;
-            
             for (int row = -1; row <= 1; row++)
             {
                 int offsetRow = i + row;
@@ -92,19 +91,9 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
 void edges(int height, int width, RGBTRIPLE image[height][width])
 {
     RGBTRIPLE copyImage[height][width];
-    int gx[3][3] =
-    {
-        {-1, 0, 1},
-        {-2, 0, 2},
-        {-1, 0, 1}
-    };
+    int gx[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
 
-    int gy[3][3] =
-    {
-        {-1, -2, -1},
-        {0, 0, 0},
-        {1, 2, 1}
-    };
+    int gy[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
 
     for (int i = 0; i < height; i++)
     {
@@ -130,15 +119,19 @@ void edges(int height, int width, RGBTRIPLE image[height][width])
                     {
                         gxSumRed +=
                             image[neighbourRow][neighbourColumn].rgbtRed * gx[row + 1][column + 1];
-                        gxSumGreen +=
-                            image[neighbourRow][neighbourColumn].rgbtGreen * gx[row + 1][column + 1];
+
+                        gxSumGreen += image[neighbourRow][neighbourColumn].rgbtGreen *
+                                      gx[row + 1][column + 1];
+
                         gxSumBlue +=
                             image[neighbourRow][neighbourColumn].rgbtBlue * gx[row + 1][column + 1];
 
                         gySumRed +=
                             image[neighbourRow][neighbourColumn].rgbtRed * gy[row + 1][column + 1];
-                        gySumGreen +=
-                            image[neighbourRow][neighbourColumn].rgbtGreen * gy[row + 1][column + 1];
+
+                        gySumGreen += image[neighbourRow][neighbourColumn].rgbtGreen *
+                                      gy[row + 1][column + 1];
+
                         gySumBlue +=
                             image[neighbourRow][neighbourColumn].rgbtBlue * gy[row + 1][column + 1];
                     }
