@@ -36,6 +36,29 @@ unsigned int hash(const char *word)
 bool load(const char *dictionary)
 {
     // TODO
+    // Open the dictionary file
+    FILE *source = fopen(dictionary, "r");
+    // check if file opened correctly
+    if (source == NULL)
+    {
+        printf("Could not open %p.\n", source);
+        return false;
+    }
+
+    // Read each word in the file
+
+        // Add each word to the hash table
+
+            // Create space for a new hash table node
+
+            // Copy the word into the new node
+
+            // Hash the word to obtain its hash value
+
+            // Insert the new node into the hash table (using the index specified by its hash value)
+
+    // Close the dictionary file
+    fclose(source);
     return false;
 }
 
