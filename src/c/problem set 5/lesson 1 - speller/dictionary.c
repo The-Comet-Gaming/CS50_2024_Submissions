@@ -17,7 +17,7 @@ typedef struct node
 } node;
 
 // TODO: Choose number of buckets in hash table
-const unsigned int N = 26;
+const unsigned int N = 3985;
 
 int WordsLoaded = 0;
 
@@ -28,15 +28,7 @@ node *table[N];
 bool check(const char *word)
 {
     // TODO
-    /*char *lowerCaseWord = NULL;
-    for (int i = 0; i < strlen(word); i++)
-    {
-        lowerCaseWord[i] = tolower(word[i]);
-    }*/
-
-    int n = hash(word);
-
-    for (node *ptr = table[n]; ptr != NULL; ptr = ptr->next)
+    for (node *ptr = table[hash(word)]; ptr != NULL; ptr = ptr->next)
     {
         int i = strcasecmp(word, ptr->word);
         if (i < 0)
@@ -55,8 +47,13 @@ bool check(const char *word)
 unsigned int hash(const char *word)
 {
     // TODO: Improve this hash function
-    return toupper(word[0]) - 'A';
-    // return word - 'a';
+    int n = strlen(word);
+    int hashNumber = 0;
+    for (int i = 0; i < n; i++)
+    {
+        hashNumber += toupper(word[i]);
+    }
+    return hashNumber - 'A';
 }
 
 // Loads dictionary into memory, returning true if successful, else false
@@ -138,3 +135,13 @@ bool unload(void)
     }
     return true;
 }
+
+// FreeTree or something (node *ptr) // I am the lorax and and I speak for the trees
+    // if ptr == NULL
+        // return;
+    // check if ptr->left != NULL
+        // call UnloadNode again to go down the list
+    // check if ptr->right != NULL
+        // call UnloadNode again to go down the list
+    // free(ptr);
+    // return;
