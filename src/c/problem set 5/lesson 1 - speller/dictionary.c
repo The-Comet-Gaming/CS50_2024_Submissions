@@ -17,7 +17,7 @@ typedef struct node
 } node;
 
 // TODO: Choose number of buckets in hash table
-const unsigned int N = 3985;
+const unsigned int N = 5393;
 
 int WordsLoaded = 0;
 
@@ -47,13 +47,20 @@ bool check(const char *word)
 unsigned int hash(const char *word)
 {
     // TODO: Improve this hash function
-    int n = strlen(word);
     int hashNumber = 0;
+    int n = strlen(word);
     for (int i = 0; i < n; i++)
     {
-        hashNumber += toupper(word[i]);
+        if (word[i] >= 'A' && word[i] <= 'Z')
+        {
+            hashNumber += tolower(word[i]);
+        }
+        else
+        {
+            hashNumber += word[i];
+        }
     }
-    return hashNumber - 'A';
+    return hashNumber - 'a';
 }
 
 // Loads dictionary into memory, returning true if successful, else false
@@ -76,6 +83,7 @@ bool load(const char *dictionary)
         node *n = malloc(sizeof(node));
         if (n == NULL)
         {
+            fclose(source);
             return false;
         }
 
@@ -83,29 +91,10 @@ bool load(const char *dictionary)
 
         // Copy the word into the new node and set link pointer to NULL
         strcpy(n->word, loadedWord);
-        n->next = NULL;
-
         // Hash the word to obtain its hash value
         int i = hash(n->word);
-
-        // if hash table[i] is empty
-        if (table[i] == NULL)
-        {
-            table[i] = n;
-        }
-        else
-        {
-            for (node *ptr = table[i]; ptr != NULL; ptr = ptr->next)
-            {
-                // If at end of list
-                if (ptr->next == NULL)
-                {
-                    // Append node
-                    ptr->next = n;
-                    break;
-                }
-            }
-        }
+        n->next = table[i];
+        table[i] = n;
     }
     // Close the dictionary file
     fclose(source);
@@ -135,13 +124,3 @@ bool unload(void)
     }
     return true;
 }
-
-// FreeTree or something (node *ptr) // I am the lorax and and I speak for the trees
-    // if ptr == NULL
-        // return;
-    // check if ptr->left != NULL
-        // call UnloadNode again to go down the list
-    // check if ptr->right != NULL
-        // call UnloadNode again to go down the list
-    // free(ptr);
-    // return;
