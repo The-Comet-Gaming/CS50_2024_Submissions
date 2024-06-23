@@ -117,9 +117,9 @@ bool unload(void)
         node *cursor = table[i];
         for (node *tmp = table[i]; tmp != NULL; tmp = cursor)
         {
-                cursor = cursor->next;
-                free(tmp);
-                tmp = cursor;
+            cursor = cursor->next;
+            free(tmp);
+            tmp = cursor;
         }
     }
     return true;
