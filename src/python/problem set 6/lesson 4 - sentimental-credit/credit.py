@@ -1,5 +1,26 @@
 # # do it as a str and iterate over it cast each number to an int for the math
 
+
+# PSUEDO-CODE
+# imports
+import re
+from cs50 import get_int
+
+
+# Get user to input card number to a str
+CardNum = str(get_int("Number: "))
+
+x = re.findall("[0-9]", CardNum)
+
+CardType = "INVALID"
+
+if len(x) == 13 or 16:
+    CardType = "BOOP"
+
+print(CardType)
+
+
+
 # PSUEDO-CODE
 # Get user to input card number to a str
 
@@ -24,37 +45,37 @@
 
 
 # import req modules
-from cs50 import get_int
+#from cs50 import get_int
 
 
 # get card number input and length
-CardNum = get_int("Number: ")
-CardLen = len(CardNum)
+#CardNum = get_int("Number: ")
+#CardLen = len(CardNum)
 
 
-def main():
-    global CardNum
-    global CardLen
+#def main():
+    #global CardNum
+    #global CardLen
 
     # it's messing up here because even if one is correct the other may not be so it returns invalid anyway
-    if check_card_len(13)
-    check_card_len(13)
-    check_card_len(16)
+    #if check_card_len(13)
+    #check_card_len(13)
+    #check_card_len(16)
 
     # print AMEX\n / MASTERCARD\n / VISA\n / INVALID\n
-    print(CardNumber)
-    exit(0)
+    #print(CardNumber)
+    #exit(0)
 
 
-def check_card_len(n):
-    global CardLen
-    if CardLen != n:
-        print(CardLen)
-        print("INVALID")
-        exit(1)
-    else:
-        print("Match Found")
-        return
+#def check_card_len(n):
+    #global CardLen
+    #if CardLen != n:
+        #print(CardLen)
+        #print("INVALID")
+        #exit(1)
+    #else:
+        #print("Match Found")
+        #return
 
 
-main()
+#main()
