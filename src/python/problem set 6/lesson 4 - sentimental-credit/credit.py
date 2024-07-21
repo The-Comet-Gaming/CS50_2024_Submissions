@@ -1,81 +1,51 @@
-# # do it as a str and iterate over it cast each number to an int for the math
+from re import findall, search
 
-
-# PSUEDO-CODE
-# imports
-import re
 from cs50 import get_int
 
 
 # Get user to input card number to a str
-CardNum = str(get_int("Number: "))
-
-x = re.findall("[0-9]", CardNum)
-
+CardStr = str(get_int("Number: "))
+Digits = findall("[0-9]", CardStr)
+Len = len(Digits)
 CardType = "INVALID"
 
-if len(x) == 13 or 16:
-    CardType = "BOOP"
 
-print(CardType)
+def main():
+    check_card("AMEX", [15], [34, 37])
+    check_card("VISA", [13, 16], [4])
+    check_card("MASTERCARD", [16], [51, 52, 53, 54, 55])
 
-
-
-# PSUEDO-CODE
-# Get user to input card number to a str
-
-# get length of card string
-# intialise variable for the str of the card type as BLANK
-
-# check_identifiers
-# # Check if card length and identifier digits are valid
-    # if false then exit() while printing("INVALID")
-
-    # else assign Identified card type (AMERICAN EXPRESS, MASTERCARD, VISA) to a variable
-
-# use re to get a list of the digits in the str
-
-# check_sum
-# # perform req math to check checksum iterating over the list while casting the chars to ints
-    # if the checksum is valid then print the card type variable and exit(0)
-
-    # else exit() and print ("INVALID")
+    print(CardType)
 
 
+def check_card(name, lengths, startNums):
+    global CardType
+
+    for i in range(len(lengths)):
+        for j in range(len(startNums)):
+            if Len == lengths[i] and search('(^)'+str(startNums[j])+'()', CardStr) != None:
+                CheckSumTotal = 0
+                if Len % 2 == 0:
+                    for k in range(Len):
+                        if k % 2 == 0:
+                            CheckSumTotal = CheckSumTotal + multiplier(k)
+                        else:
+                            CheckSumTotal = CheckSumTotal + int(Digits[k])
+                else:
+                    for k in range(Len):
+                        if k % 2 == 0:
+                            CheckSumTotal = CheckSumTotal + int(Digits[k])
+                        else:
+                            CheckSumTotal = CheckSumTotal + multiplier(k)
+                if CheckSumTotal % 10 == 0:
+                    CardType = name
 
 
-# import req modules
-#from cs50 import get_int
+def multiplier(k):
+    MultipliedNum = int(Digits[k]) * 2
+    if MultipliedNum > 9:
+        MultipliedNum = MultipliedNum - 9
+    return MultipliedNum
 
 
-# get card number input and length
-#CardNum = get_int("Number: ")
-#CardLen = len(CardNum)
-
-
-#def main():
-    #global CardNum
-    #global CardLen
-
-    # it's messing up here because even if one is correct the other may not be so it returns invalid anyway
-    #if check_card_len(13)
-    #check_card_len(13)
-    #check_card_len(16)
-
-    # print AMEX\n / MASTERCARD\n / VISA\n / INVALID\n
-    #print(CardNumber)
-    #exit(0)
-
-
-#def check_card_len(n):
-    #global CardLen
-    #if CardLen != n:
-        #print(CardLen)
-        #print("INVALID")
-        #exit(1)
-    #else:
-        #print("Match Found")
-        #return
-
-
-#main()
+main()
