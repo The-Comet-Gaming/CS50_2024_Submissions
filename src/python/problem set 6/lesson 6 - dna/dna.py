@@ -3,28 +3,45 @@ import sys
 
 
 def main():
-
     # TODO: Check for command-line usage
     if len(sys.argv) != 3:
         print("Usage: python dna.py FILE.csv FILE.txt")
         exit(1)
 
     # TODO: Read database file into a variable
+    # TODO: Read DNA sequence file into a variable
     rows = []
-    with open(sys.argv[1]) as file:
-        reader = csv.DictReader(file)
+    # open csv and txt files to read into dicts
+    with open(sys.argv[1]) as csvFile, open(sys.argv[2]) as txtFile:
+        reader = csv.DictReader(csvFile)
         for row in reader:
             rows.append(row)
-    print(reader.fieldnames)
-    for i in range(len(rows)):
-        print(rows[i])
-
-    # TODO: Read DNA sequence file into a variable
+        sequence = txtFile.read()
+    # intialize a variable length list of keys for the STRs
+    keys = []
+    for i in range(len(reader.fieldnames)):
+        if i < 1:
+            continue
+        keys.append(str(reader.fieldnames[i]))
 
     # TODO: Find longest match of each STR in DNA sequence
+    longestSTRs = {}
+    for i in range(len(keys)):
+        longestSTRs.update({keys[i]: longest_match(sequence, keys[i])})
 
     # TODO: Check database for matching profiles
+    # loop i iterates through rows, loop j iterates through STRs to compare lengths
+    # a name is printed if the number of matches found is equal to the number of STR keys
+    for i in range(len(rows)):
+        matchesFound = 0
+        for j in range(len(keys)):
+            if int(rows[i][keys[j]]) == int(longestSTRs[keys[j]]):
+                matchesFound += 1
+            if matchesFound == len(keys):
+                print(rows[i]["name"])
+                exit(0)
 
+    print("No Match")
     return
 
 
