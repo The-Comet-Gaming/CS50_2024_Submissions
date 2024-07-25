@@ -3,13 +3,13 @@ import sys
 
 
 def main():
-    # TODO: Check for command-line usage
+    # Check for command-line usage
     if len(sys.argv) != 3:
         print("Usage: python dna.py FILE.csv FILE.txt")
         exit(1)
 
-    # TODO: Read database file into a variable
-    # TODO: Read DNA sequence file into a variable
+    # Read database file into a variable
+    # Read DNA sequence file into a variable
     rows = []
     # open csv and txt files to read into dicts
     with open(sys.argv[1]) as csvFile, open(sys.argv[2]) as txtFile:
@@ -24,12 +24,12 @@ def main():
             continue
         keys.append(str(reader.fieldnames[i]))
 
-    # TODO: Find longest match of each STR in DNA sequence
+    # Find longest match of each STR in DNA sequence
     longestSTRs = {}
     for i in range(len(keys)):
         longestSTRs.update({keys[i]: longest_match(sequence, keys[i])})
 
-    # TODO: Check database for matching profiles
+    # Check database for matching profiles
     # loop i iterates through rows, loop j iterates through STRs to compare lengths
     # a name is printed if the number of matches found is equal to the number of STR keys
     for i in range(len(rows)):

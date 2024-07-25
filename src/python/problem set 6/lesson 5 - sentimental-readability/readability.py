@@ -1,26 +1,29 @@
-# imports,
-from re import findall
+import re
 
 from cs50 import get_string
 
 
-# get str
-Text = get_string("Text: ")
+def main():
+    text = get_string("Text: ")
 
-# findalls
-Letters = findall("[a-zA-Z]", Text)
-Words = findall("[ ]", Text)
-Sentences = findall("[.!?]", Text)
-WordCount = len(Words) + 1
+    letters = len(re.findall("[a-zA-Z]", text))
+    words = len(re.split(" ", text))
+    sentences = len(re.findall("[.!?]", text))
+
+    grade = round(div(0.0588, letters, words) - div(0.296, sentences, words) - 15.8)
+
+    if grade < 1:
+        print("Before Grade 1")
+    elif grade > 16:
+        print("Grade 16+")
+    else:
+        print(f"Grade: {grade}")
+
+    exit(0)
 
 
-Grade = round((0.0588 * (len(Letters) / WordCount * 100)) -
-              (0.296 * (len(Sentences) / WordCount * 100)) - 15.8)
+def div(n, l_or_s, words):
+    return n * (L_or_S / words * 100)
 
 
-if Grade < 1:
-    print("Before Grade 1")
-elif Grade > 16:
-    print("Grade 16+")
-else:
-    print(f"Grade: {Grade}")
+main()
