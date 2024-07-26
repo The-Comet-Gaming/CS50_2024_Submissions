@@ -2,29 +2,17 @@ from cs50 import get_float
 
 
 while True:
-    Change = get_float("Change: ") * 100
-    if Change > 0:
+    change = get_float("Change: ") * 100
+    if change > 0:
         break
-TotalCoins = 0
 
+total_coins = 0
+coin_value = [25, 10, 5, 1]
 
-def main():
-    CalculateCoins(25)
-    CalculateCoins(10)
-    CalculateCoins(5)
-    CalculateCoins(1)
-    print(TotalCoins)
+for i in range(len(coin_value)):
+    n = change // coin_value[i]
+    total_coins += n
+    change -= coin_value[i] * n
 
-
-def CalculateCoins(coinValue):
-    global Change
-    if Change < coinValue:
-        return
-    else:
-        global TotalCoins
-        n = floor(Change / coinValue)
-        TotalCoins = TotalCoins + n
-        Change = Change - coinValue * n
-
-
-main()
+print(int(total_coins))
+exit(0)
