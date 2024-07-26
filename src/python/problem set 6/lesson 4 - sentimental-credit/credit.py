@@ -3,13 +3,17 @@ from re import findall, search
 from cs50 import get_int
 
 
+global card_str = str(get_int("Number: "))
+
+
 def main():
-    card_str = str(get_int("Number: "))
-    card_nums = findall("[0-9]", card_str)
-    card_len = len(card_nums)
+
+    # card_str = str(get_int("Number: "))
+    # card_nums = findall("[0-9]", card_str)
+    card_length = len(card_nums)
     card_type = "INVALID"
 
-    check_card(card_str, card_nums, card_len, "AMEX", [15], [34, 37])
+    check_card(card_len, "AMEX", [15], ["34", "37"])
     # check_card(card_str, card_nums, card_len, "VISA", [13, 16], [4])
     # check_card(card_str, card_nums, card_len, "MASTERCARD", [16], [51, 52, 53, 54, 55])
 
@@ -17,75 +21,84 @@ def main():
     exit(0)
 
 
-def check_card(card_str, c_nums, c_len, c_name, lens, start_nums):
-    n = 0
-    loop = c_len
-    checksum = 0
-
-    for i in range(len(c_nums)):
-        for j in range(len(start_nums)):
-            if c_len == lens[i] and search('(^)'+str(start_nums[j])+'()', card_str) != None:
-                while loop >= 0:
-                    index_to_multiply = c_len - 2 - (n * 2)
-                    if loop == index_to_multiply:
-                        n += 1
-                        multiplied_num = int(c_nums[i]) * 2
-                        if multiplied_num > 9:
-                            checksum += multiplied_num - 9
-                        else:
-                            checksum += multiplied_num
-                    else:
-                        checksum += int(c_nums[i])
-                    loop -= 1
-            else:
-                return
-
-    if checksum % 10 == 0:
-        print(c_name)
+#def check_card(card_str, c_nums, c_len, c_name, lens, start_nums):
+def check_card(card_length, card_type, allowable_lengths, allowable_starting_numbers):
+    if card_length not in allowable_lengths:
         return
-    else:
-        return
+
+    for prefix in allowable_starting_numbers:
+        if card_str.startswith(prefix):
+            print("fuck (in a good way)")
+            # checksum
+
+    #n = 0
+    #loop = c_len
+    #checksum = 0
+
+    #for i in range(len(c_nums)):
+        #for j in range(len(start_nums)):
+            #if c_len == lens[i] and search('(^)'+str(start_nums[j])+'()', card_str) != None:
+                #while loop >= 0:
+                    #index_to_multiply = c_len - 2 - (n * 2)
+                    #if loop == index_to_multiply:
+                        #n += 1
+                        #multiplied_num = int(c_nums[i]) * 2
+                        #if multiplied_num > 9:
+                            #checksum += multiplied_num - 9
+                        #else:
+                            #checksum += multiplied_num
+                    #else:
+                        #checksum += int(c_nums[i])
+                    #loop -= 1
+            #else:
+                #return
+
+    #if checksum % 10 == 0:
+        #print(c_name)
+        #return
+    #else:
+        #return
 
 
 main()
 
 
 
+'''
+#from re import findall, search
 
-from re import findall, search
-
-from cs50 import get_int
+#from cs50 import get_int
 
 
 # Get user to input card number to a str
-CardStr = str(get_int("Number: "))
-Digits = findall("[0-9]", CardStr)
-Len = len(Digits)
-CardType = "INVALID"
+#CardStr = str(get_int("Number: "))
+#Digits = findall("[0-9]", CardStr)
+#Len = len(Digits)
+#CardType = "INVALID"
 
 
-def main():
-    check_card("AMEX", [15], [34, 37])
-    check_card("VISA", [13, 16], [4])
-    check_card("MASTERCARD", [16], [51, 52, 53, 54, 55])
+#def main():
+    #check_card("AMEX", [15], [34, 37])
+    #check_card("VISA", [13, 16], [4])
+    #check_card("MASTERCARD", [16], [51, 52, 53, 54, 55])
 
-    print(CardType)
+    #print(CardType)
 
 
-def check_card(name, lengths, startNums):
-    global CardType
+#def check_card(name, lengths, startNums):
+    #global CardType
 
-    for i in range(len(lengths)):
-        for j in range(len(startNums)):
-            if Len == lengths[i] and search('(^)'+str(startNums[j])+'()', CardStr) != None:
-                CheckSumTotal = 0
-                if Len % 2 == 0:
-                    for k in range(Len):
-                        if k % 2 == 0:
-                            CheckSumTotal = CheckSumTotal + multiplier(k)
-                        else:
-                            CheckSumTotal = CheckSumTotal + int(Digits[k])
-                else:
+    #for i in range(len(lengths)):
+        #for j in range(len(startNums)):
+            #if Len == lengths[i] and search('(^)'+str(startNums[j])+'()', CardStr) != None:
+                #CheckSumTotal = 0
+                #if Len % 2 == 0:
+                    #for k in range(Len):
+                        #if k % 2 == 0:
+                            #CheckSumTotal = CheckSumTotal + multiplier(k)
+                        #else:
+                            #CheckSumTotal = CheckSumTotal + int(Digits[k])
+                #else:
                     for k in range(Len):
                         if k % 2 == 0:
                             CheckSumTotal = CheckSumTotal + int(Digits[k])
@@ -103,3 +116,4 @@ def multiplier(k):
 
 
 main()
+'''
