@@ -3,6 +3,60 @@ from re import findall, search
 from cs50 import get_int
 
 
+def main():
+    card_str = str(get_int("Number: "))
+    card_nums = findall("[0-9]", card_str)
+    card_len = len(card_nums)
+    card_type = "INVALID"
+
+    check_card(card_str, card_nums, card_len, "AMEX", [15], [34, 37])
+    # check_card(card_str, card_nums, card_len, "VISA", [13, 16], [4])
+    # check_card(card_str, card_nums, card_len, "MASTERCARD", [16], [51, 52, 53, 54, 55])
+
+    #print(card_type)
+    exit(0)
+
+
+def check_card(card_str, c_nums, c_len, c_name, lens, start_nums):
+    n = 0
+    loop = c_len
+    checksum = 0
+
+    for i in range(len(c_nums)):
+        for j in range(len(start_nums)):
+            if c_len == lens[i] and search('(^)'+str(start_nums[j])+'()', card_str) != None:
+                while loop >= 0:
+                    index_to_multiply = c_len - 2 - (n * 2)
+                    if loop == index_to_multiply:
+                        n += 1
+                        multiplied_num = int(c_nums[i]) * 2
+                        if multiplied_num > 9:
+                            checksum += multiplied_num - 9
+                        else:
+                            checksum += multiplied_num
+                    else:
+                        checksum += int(c_nums[i])
+                    loop -= 1
+            else:
+                return
+
+    if checksum % 10 == 0:
+        print(c_name)
+        return
+    else:
+        return
+
+
+main()
+
+
+
+
+from re import findall, search
+
+from cs50 import get_int
+
+
 # Get user to input card number to a str
 CardStr = str(get_int("Number: "))
 Digits = findall("[0-9]", CardStr)
