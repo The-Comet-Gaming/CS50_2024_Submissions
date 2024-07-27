@@ -3,21 +3,16 @@ from re import findall, search
 from cs50 import get_int
 
 
-global card_str = str(get_int("Number: "))
+card_string = str(get_int("Number: "))
 
 
 def main():
+    card_length = len(card_string)
 
-    # card_str = str(get_int("Number: "))
-    # card_nums = findall("[0-9]", card_str)
-    card_length = len(card_nums)
-    card_type = "INVALID"
+    check_card(card_length, "AMEX", [15], ["34", "37"])
+    check_card(card_length, "VISA", [13, 16], ["4"])
+    check_card(card_length, "MASTERCARD", [16], ["51", "52", "53", "54", "55"])
 
-    check_card(card_len, "AMEX", [15], ["34", "37"])
-    # check_card(card_str, card_nums, card_len, "VISA", [13, 16], [4])
-    # check_card(card_str, card_nums, card_len, "MASTERCARD", [16], [51, 52, 53, 54, 55])
-
-    #print(card_type)
     exit(0)
 
 
@@ -27,9 +22,77 @@ def check_card(card_length, card_type, allowable_lengths, allowable_starting_num
         return
 
     for prefix in allowable_starting_numbers:
-        if card_str.startswith(prefix):
-            print("fuck (in a good way)")
-            # checksum
+        if card_string.startswith(prefix):
+            checksum(card_length, card_type)
+
+
+def checksum(card_length, card_type):
+    card_digits = findall("[0-9]", card_string)
+    #for digit in card_digits:
+        #digit = int(digit)
+    checksum = 0
+
+    if card_length % 2 == 0:
+        for k in range(card_length):
+            if k % 2 == 0:
+                checksum += multiplier(int(card_digits[k]))
+
+            else:
+                checksum += int(card_digits[k])
+
+    else:
+        for k in range(card_length):
+            if k % 2 == 0:
+                checksum += int(card_digits[k])
+
+            else:
+                checksum += multiplier(int(card_digits[k]))
+
+    if checksum % 10 == 0:
+        print(card_type)
+    else:
+        print("INVALID")
+
+
+def multiplier(digit):
+    multiplied_number = digit * 2
+    if multiplied_number > 9:
+        multiplied_number = multiplied_number - 9
+    return multiplied_number
+
+
+main()
+
+    '''
+    card_digits = findall("[0-9]", card_string)
+    current_loop = 0
+    n = card_length // 2
+    checksum = 0
+
+    for digit in card_digits:
+        digit = int(digit)
+        digit_to_multiply = card_length - (n * 2)
+
+        if current_loop == digit_to_multiply:
+            multiplied_digit = digit * 2
+
+            if multiplied_digit > 9:
+                checksum += multiplied_digit - 9
+            else:
+                checksum += multiplied_digit
+
+        else:
+            checksum += digit
+
+    print(checksum)
+
+    if checksum % 10 == 0:
+        print(card_type)
+        exit(0)
+    '''
+
+
+
 
     #n = 0
     #loop = c_len
@@ -60,7 +123,7 @@ def check_card(card_length, card_type, allowable_lengths, allowable_starting_num
         #return
 
 
-main()
+
 
 
 
