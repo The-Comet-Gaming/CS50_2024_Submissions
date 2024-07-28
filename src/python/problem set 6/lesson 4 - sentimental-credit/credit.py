@@ -13,10 +13,10 @@ def main():
     check_card(card_length, "VISA", [13, 16], ["4"])
     check_card(card_length, "MASTERCARD", [16], ["51", "52", "53", "54", "55"])
 
+    print("INVALID")
     exit(0)
 
 
-#def check_card(card_str, c_nums, c_len, c_name, lens, start_nums):
 def check_card(card_length, card_type, allowable_lengths, allowable_starting_numbers):
     if card_length not in allowable_lengths:
         return
@@ -28,42 +28,126 @@ def check_card(card_length, card_type, allowable_lengths, allowable_starting_num
 
 def checksum(card_length, card_type):
     card_digits = findall("[0-9]", card_string)
-    #for digit in card_digits:
-        #digit = int(digit)
+
+    index_to_multiply = card_length - 2
+    loop = card_length - 1
+    
     checksum = 0
+
+    while loop >= 0:
+        card_digits[loop] = int(card_digits[loop])
+
+        if loop == index_to_multiply:
+            multiplied_digit = card_digits[loop] * 2
+
+            if multiplied_digit > 9:
+                checksum += multiplied_digit - 9
+
+            else:
+                checksum += multiplied_digit
+
+            index_to_multiply -= 2
+
+        else:
+            checksum += card_digits[loop]
+
+        loop -= 1
+
+    if checksum % 10 == 0:
+        print(card_type)
+        exit(0)
+
+    else:
+        print("INVALID")
+        exit(0)
+
+
+main()
+
+
+    # 16 = 15 in binary
+        # 14
+        # 12
+        # 10
+        # 8
+        # 6
+        # 4
+        # 2
+        # 0
+    # 15 = 14 in binary
+        # 13
+        # 11
+        # 9
+        # 7
+        # 5
+        # 3
+        # 1
+    # 13 = 12 in binary
+        # 11
+        # 9
+        # 7
+        # 5
+        # 3
+        # 1
+
+
+'''
+    card_digits = findall("[0-9]", card_string)
+    index_to_multiply = card_length - 2
+    checksum = 0
+
+    loop = card_length - 1
+
+    for loop in range(len(card_digits)):
+        card_digits[loop] = int(card_digits[loop])
+        index_to_multiply = (divided_length * 2) - 2
+
+        if loop == index_to_multiply:
+            divided_length -= 1
+            multiplied_digit = card_digits[loop] * 2
+
+            if multiplied_digit > 9:
+                checksum += multiplied_digit - 9
+            else:
+                checksum += multiplied_digit
+        else:
+            checksum += card_digits[loop]
+
+    if checksum % 10 == 0:
+        print(card_type)
+        exit(0)
+    else:
+        print("INVALID")
+        exit(0)
+
+
+
 
     if card_length % 2 == 0:
         for k in range(card_length):
             if k % 2 == 0:
                 checksum += multiplier(int(card_digits[k]))
-
             else:
                 checksum += int(card_digits[k])
-
     else:
         for k in range(card_length):
             if k % 2 == 0:
                 checksum += int(card_digits[k])
-
             else:
                 checksum += multiplier(int(card_digits[k]))
-
-    if checksum % 10 == 0:
-        print(card_type)
-    else:
-        print("INVALID")
+'''
 
 
+
+'''
 def multiplier(digit):
     multiplied_number = digit * 2
     if multiplied_number > 9:
         multiplied_number = multiplied_number - 9
     return multiplied_number
+'''
 
-
-main()
-
-    '''
+'''
     card_digits = findall("[0-9]", card_string)
     current_loop = 0
     n = card_length // 2
@@ -89,7 +173,7 @@ main()
     if checksum % 10 == 0:
         print(card_type)
         exit(0)
-    '''
+'''
 
 
 
