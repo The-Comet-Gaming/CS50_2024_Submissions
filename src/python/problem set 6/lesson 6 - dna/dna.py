@@ -3,17 +3,45 @@ import sys
 
 
 def main():
+    # Check for command-line usage
+    if len(sys.argv) != 3:
+        print("Usage: python dna.py FILE.csv FILE.txt")
+        exit(1)
 
-    # TODO: Check for command-line usage
+    # Read database file into a variable
+    # Read DNA sequence file into a variable
+    rows = []
+    # open csv and txt files to read into dicts
+    with open(sys.argv[1]) as csvFile, open(sys.argv[2]) as txtFile:
+        reader = csv.DictReader(csvFile)
+        for row in reader:
+            rows.append(row)
+        sequence = txtFile.read()
+    # intialize a variable length list of keys for the STRs
+    keys = []
+    for i in range(len(reader.fieldnames)):
+        if i < 1:
+            continue
+        keys.append(str(reader.fieldnames[i]))
 
-    # TODO: Read database file into a variable
-    
-    # TODO: Read DNA sequence file into a variable
+    # Find longest match of each STR in DNA sequence
+    longestSTRs = {}
+    for i in range(len(keys)):
+        longestSTRs.update({keys[i]: longest_match(sequence, keys[i])})
 
-    # TODO: Find longest match of each STR in DNA sequence
+    # Check database for matching profiles
+    # loop i iterates through rows, loop j iterates through STRs to compare lengths
+    # a name is printed if the number of matches found is equal to the number of STR keys
+    for i in range(len(rows)):
+        matchesFound = 0
+        for j in range(len(keys)):
+            if int(rows[i][keys[j]]) == int(longestSTRs[keys[j]]):
+                matchesFound += 1
+            if matchesFound == len(keys):
+                print(rows[i]["name"])
+                exit(0)
 
-    # TODO: Check database for matching profiles
-
+    print("No Match")
     return
 
 
@@ -43,11 +71,11 @@ def longest_match(sequence, subsequence):
             # If there is a match in the substring
             if sequence[start:end] == subsequence:
                 count += 1
-            
+
             # If there is no match in the substring
             else:
                 break
-        
+
         # Update most consecutive matches found
         longest_run = max(longest_run, count)
 
