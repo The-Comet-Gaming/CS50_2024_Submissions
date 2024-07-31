@@ -26,8 +26,8 @@ You’re welcome to check your queries’ results against IMDb itself, but realize t
 	- Your query should output a table with two columns, one for the title of each movie and one for the rating of each movie.
 	- Movies that do not have ratings should not be included in the result.
 8. In `8.sql`, write a SQL query to list the names of all people who starred in Toy Story.
-- Your query should output a table with a single column for the name of each person.
-- You may assume that there is only one movie in the database with the title Toy Story.
+	- Your query should output a table with a single column for the name of each person.
+	- You may assume that there is only one movie in the database with the title Toy Story.
 9. In `9.sql`, write a SQL query to list the names of all people who starred in a movie released in 2004, ordered by birth year.
 	- Your query should output a table with a single column for the name of each person.
 	- People with the same birth year may be listed in any order.
