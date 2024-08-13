@@ -1,6 +1,8 @@
-SELECT AVG(energy) FROM songs 
+SELECT AVG(energy) 
+FROM songs 
 WHERE artist_id = 
 (
-	SELECT id FROM artists 
+	SELECT id 
+	FROM artists 
 	WHERE name = 'Drake'
 );
