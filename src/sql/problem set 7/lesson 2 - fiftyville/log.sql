@@ -1,16 +1,15 @@
 -- Keep a log of any SQL queries you execute as you solve the mystery.
 
--- Firstly at the start of each session or codespace reset.
+-- Firstly, at the start of each session or codespace reset.
 -- I always navigate to the correct folder where the fiftyville files are located
 cd sql/fifftyville/
 
 -- I run this command each time I'm opening the database
 sqlite3 fiftyville.db
 
-
 -- I started by getting a lay of the land so to speak by using .schema to
 -- retrieve the commands used to create the table and get a clear picture
--- of how the tables connect and interact with eachother
+-- of how the tables connect and interact with each other
 .schema
 
 -- As per the hint in the Fiftyville problem description and as logic
@@ -52,14 +51,14 @@ WHERE year = 2023 AND month = 7 AND day = 28 AND transcript LIKE '%bakery%';
 | 163 | Raymond | As the thief was leaving the bakery, they called someone who talked to them for less than a minute. In the call, I heard the thief say that they were planning to take the earliest flight out of Fiftyville tomorrow. The thief then asked the person on the other end of the phone to purchase the flight ticket. |
 +-----+---------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 -- Wow, that's a long table. I'm glad that I chose to specify what columns I was retrieving this time or else that table would have been bigger.*/
--- These were some pretty good witnesses though, we now have a pretty clear picture of how things transpired and some threads to pull on:
+-- These were some pretty good witnesses though; we now have a pretty clear picture of how things transpired and some threads to pull on:
 -- Like the thief escaping in a car from the bakery parking lot and what time frame this happened in.
 -- The thief being recognised at the ATM located on 'Leggett Street' before the theft.
 -- That the thief made a short, less than a minute long phone call where the thief mentions their plan to take the earliest flight out of Fiftyville the next morning.
 -- And that the thief asked the person on the other end of the call to make the flight ticket purchase for them.
 
 -- Let's start pulling on the thread of the getaway car first.
--- Firstly I want to visually see what the table looks like and what data is contained within the columns.
+-- Firstly, I want to visually see what the table looks like and what data is contained within the columns.
 SELECT *
 FROM bakery_security_logs
 LIMIT 10;
@@ -79,8 +78,8 @@ LIMIT 10;
 | 9  | 2023 | 7     | 25  | 8    | 28     | entrance | C3S4W87       |
 | 10 | 2023 | 7     | 25  | 8    | 30     | entrance | B49OR81       |
 +----+------+-------+-----+------+--------+----------+---------------+
--- Here I can see how the columns are utelised.*/
--- Specifically the hour and minute columns which are estential to narrowing down our list of possible getaway cars.
+-- Here I can see how the columns are utilised.*/
+-- Specifically, the hour and minute columns which are essential to narrowing down our list of possible getaway cars.
 
 -- With that in mind. I plan to use the following query to retrieve security log information during 10.15am to 10.25am
 -- and link the license_plate to the table of people to retrieve the id, name, phone and number along with other relevant information.
@@ -103,11 +102,11 @@ WHERE year = 2023 AND month = 7 AND day = 28 AND b.hour = 10 AND minute >= 15 AN
 | 10   | 23     | exit     | 0NTHK55       | 560886 | Kelsey  | (499) 555-9472 | 8294398571      | 0NTHK55       |
 +------+--------+----------+---------------+--------+---------+----------------+-----------------+---------------+
 */
--- Here I have 8 individual vehicles, their number plates, and the people who's name they are registered under.
+-- Here I have 8 individual vehicles, their number plates, and the people whose name they are registered under.
 -- Since we can't make any assumptions about who or are how these people are involved in with the crime.
--- We will keep a note of these people for and continue on pulling at other threads.
+-- We will keep a note of these people for and continue pulling at other threads.
 
--- Let's move onto the culprit's alledged appearence at the ATM on Leggett Street.
+-- Let's move onto the culprit's alleged appearance at the ATM on Leggett Street.
 SELECT p.*, a.account_number, a.transaction_type, a.amount, a.atm_location
 FROM atm_transactions AS a
 JOIN bank_accounts AS b ON a.account_number = b.account_number
@@ -129,7 +128,7 @@ WHERE a.year = 2023 AND a.month = 7 AND a.day = 28 AND a.atm_location = 'Leggett
 | 438727 | Benista | (338) 555-6650 | 9586786673      | 8X428L0       | 81061156       | withdraw         | 30     | Leggett Street |
 +--------+---------+----------------+-----------------+---------------+----------------+------------------+--------+----------------+
 */
--- Now so far we have two people who were present at both locations on the day of the crime. That being:
+-- Now so far, we have two people who were present at both locations on the day of the crime. That being:
 /*
 +--------+---------+----------------+-----------------+---------------+
 |   id   |  name   |  phone_number  | passport_number | license_plate |
@@ -160,7 +159,7 @@ WHERE pc.year = 2023 AND pc.month = 7 AND pc.day = 28 AND pc.duration <= 60;
 */
 -- We can make that a little bit better though.
 
--- So I may have gone a little overboard compared to what I had written before.
+-- So, I may have gone a little overboard compared to what I had written before.
 SELECT p1.id AS suspect_id, p1.name AS suspect_name, pc.caller AS suspect_phone,
 p2.id AS receiver_id, p2.name AS receiver_name, pc.receiver, pc.duration
 FROM people AS p1
@@ -183,11 +182,11 @@ AND a.year = 2023 AND a.month = 7 AND a.day = 28 AND a.atm_location = 'Leggett S
 +------------+--------------+----------------+-------------+---------------+----------------+----------+
 */
 -- But by taking all of the previous pieces of information I had gathered more or less
--- independantly of eachother and combining them into a single query I was able to
+-- independently of each other and combining them into a single query I was able to
 -- narrow down the possible suspects to a Bruce or Diana.
 -- Interestingly enough I hadn't even noticed Diana as a possible suspect during
--- the independant queries but upon going back through these notes I found that she was
--- indeed present at all of the same locations as the thief within the same estimated time frames.
+-- the independent queries but upon going back through these notes I found that she was
+-- indeed, present at all of the same locations as the thief within the same estimated time frames.
 
 -- Next I need to check the flights out of Fiftyville that were scheduled for the next morning.
 -- I went through several iterations of this query until I arrived at a result that I felt was satisfactory
@@ -280,8 +279,8 @@ AND f.year = 2023 AND f.month = 7 AND f.day = 29;
 +------------+--------------+------------------+-----------+-------------+----------------+---------------+------+-------+-----+------+--------+
 */
 -- As we can see from the table above, Bruce is the prime suspect over Diana due to their flight's departure time.
--- Before we can pin down Bruce however we need to check who paid for the respect suspect's flights.
--- As if the testimony fron Raymond is correct, it wasn't the suspect themselves who booked/paid for the flight, it was their accomplice.
+-- Before we can pin down Bruce however, we need to check who paid for the respect suspect's flights.
+-- As if the testimony from Raymond is correct, it wasn't the suspect themselves who booked/paid for the flight, it was their accomplice.
 
 -- At this point I went to see if I could find any transactions that would tie the accomplice to the flight of the prime suspects,
 -- but I don't think this mystery accounted for that angle of investigation.
@@ -291,5 +290,6 @@ JOIN bank_accounts AS bank ON atm.account_number = bank.account_number
 JOIN people AS p ON bank.person_id = p.id
 WHERE atm.year = 2023 AND atm.month = 7 AND atm.day = 28 AND p.name = 'Robin' OR p.name = 'Philip';
 
+-- TLDR: Bruce is the culprit! his accomplice is Robin! and he escaped to New York City!
 
--- TLDR: Bruce is the culprit!, his accomplice is Robin, and he escaped to New York City!
+
