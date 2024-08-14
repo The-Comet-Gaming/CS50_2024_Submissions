@@ -1,0 +1,17 @@
+## If songs.db contains the top 100 songs of one listener from 2018, how would you characterize their audio aura?
+
+I started by quering the database for the relevant sets of values refered too in the problem set 7 songs description, that being "energy, valence, and danceability" with
+the goal to retrieve the lowest, highest, and average values of each set of data. I found that the average values for energy, valnce and danceability where:
+0.65906, 0.484443 and 0.71646 respectively. From there I was able to infer a characterisation of the user's music aura using the lowest and highest values to compare the
+averages to the relative values as follows:
+Yellow and Purple
+
+
+## Hypothesize about why the way you’ve calculated this aura might not be very representative of the listener. What better ways of calculating this aura would you propose?
+
+The reason the calculated aura may not be very representative of the listener is because music as a medium is inherently subjective and personal. A company / industry can
+use a set of generally agreed upon ideas and opinions of what music sounds happy, sad, etc and conveys what emotion and feeling. But ultimately any given piece of music is
+still open to being intrepreted differently by each each person that hears it and how they feel when listening to it.
+Also the data sets used for determining an audio aura do not include lyrics. Which also determine what message a song is converying, a pretty up-beat and positive sounding
+backing track might have lyrics talking about the existential dread of the inevitiable heat death of the universe or something or other.
+The inclusion of the lyrics and the "message" being conveyed by the song into the equation determining a user's music aura can possibly make it more "authentic". 
