@@ -1,31 +1,44 @@
 <!DOCTYPE html>
 
 <html lang="en">
-    <head>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
-        <link href="styles.css" rel="stylesheet">
-        <title>Trivia!</title>
-        <script>
-            // TODO: Add code to check answers to questions
-        </script>
-    </head>
-    <body>
-        <div class="header">
-            <h1>Trivia!</h1>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <meta property="og:title" content="T.S.'s Trivia!">
+    <meta property="og:description" content="One of T.S.'s assignments for CS50x 2024.">
+    <meta name="viewport" content="initial-scale=1, width=device-width">
+    <title>Trivia!</title>
+    <script>
+        // TODO: Add code to check answers to questions
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h1>Trivia!</h1>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>Part 1: Multiple Choice</h2>
+            <hr>
+            <h3>How many job classes are there in the critically acclaimed MMORPG Final Fantasy XIV which has a free trial, and includes the entirety of A Realm Reborn AND the award-winning Heavensward expansion AND the Stormblood expansion up to level 70 with no restrictions on playtime?</h3>
+            <ol>
+                <li><button>Answer 1</button></li>
+                <li><button>Answer 2</button></li>
+                <li><button>Answer 3</button></li>
+            </ol>
         </div>
 
-        <div class="container">
-            <div class="section">
-                <h2>Part 1: Multiple Choice </h2>
-                <hr>
-                <!-- TODO: Add multiple choice question here -->
-            </div>
-
-            <div class="section">
-                <h2>Part 2: Free Response</h2>
-                <hr>
-                <!-- TODO: Add free response question here -->
-            </div>
+        <div class="section">
+            <h2>Part 2: Free Response</h2>
+            <hr>
+            <h3>In Final Fantasy XIV the player character is often referred to as the 'Warrior Of' what?</h3>
+            <form>
+                <input autocomplete="off" placeholder="answer" type="text">
+                <button>Check Answer</button>
+            </form>
+            <!-- TODO: Add free response question here -->
         </div>
-    </body>
+    </div>
+</body>
 </html>
