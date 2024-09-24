@@ -12,24 +12,36 @@
 
     <title>Trivia!</title>
     <script>
-        // TODO: Add code to check answers to questions
-        // function for correct answer
-        function correct(button) {
-            if (document.getElementById("part1tagincorrect").style.display != "none") {
-                document.getElementById("part1tagincorrect").style.display = "none";
+        function hideansweralert(tagid) {
+            if (document.getElementById(tagid).style.display != "none") {
+                document.getElementById(tagid).style.display = "none";
             }
+        }
 
+        function correct(button) {
+            hideansweralert("part1tagincorrect");
             button.style.backgroundColor = "green";
             document.getElementById("part1tagcorrect").style.display = "inline";
         }
-        // function for incorrect answers
+
         function incorrect(button) {
-            if (document.getElementById("part1tagcorrect").style.display != "none") {
-                document.getElementById("part1tagcorrect").style.display = "none";
-            }
-            
+            hideansweralert("part1tagcorrect");            
             button.style.backgroundColor = "red";
             document.getElementById("part1tagincorrect").style.display = "inline";
+        }
+
+        function checkinput(input) {
+            let string = document.getElementById("inputfield").value;
+            if (string == "Light") {
+                hideansweralert("part2tagincorrect");
+                document.getElementById("inputfield").style.backgroundColor = "green";
+                document.getElementById("part2tagcorrect").style.display = "inline";
+            }
+            else {
+                hideansweralert("part2tagcorrect");
+                document.getElementById("inputfield").style.backgroundColor = "red";
+                document.getElementById("part2tagincorrect").style.display = "inline";
+            }
         }
     </script>
 </head>
@@ -44,9 +56,9 @@
             <hr>
             <h3>How many job classes are there in the critically acclaimed MMORPG Final Fantasy XIV which has a free trial, and includes the entirety of A Realm Reborn AND the award-winning Heavensward expansion AND the Stormblood expansion up to level 70 with no restrictions on playtime?</h3>
             <ol>
-                <li><button type="submit" onclick="correct(this);">Answer 1</button></li>
-                <li><button type="submit" onclick="incorrect(this);">Answer 2</button></li>
-                <li><button type="submit" onclick="incorrect(this);">Answer 3</button></li>
+                <li><button type="submit" onclick="correct(this);">22</button></li>
+                <li><button type="submit" onclick="incorrect(this);">19</button></li>
+                <li><button type="submit" onclick="incorrect(this);">31</button></li>
             </ol>
             <p style="display:none" id="part1tagcorrect">Correct!</p>
             <p style="display:none" id="part1tagincorrect">Incorrect</p>
@@ -56,13 +68,12 @@
             <h2>Part 2: Free Response</h2>
             <hr>
             <h3>In Final Fantasy XIV the player character is often referred to as the 'Warrior Of' what?</h3>
-            <form>
-                <input autocomplete="off" placeholder="answer" type="text">
+            <form onsubmit="checkinput(this); return false;">
+                <input type="text" id="inputfield" autocomplete="off" placeholder="answer">
                 <button>Check Answer</button>
             </form>
-            <p style="display:none" id="part2tagcorrect">Correct</p>
+            <p style="display:none" id="part2tagcorrect">Correct!</p>
             <p style="display:none" id="part2tagincorrect">Incorrect</p>
-            <!-- TODO: Add free response question here -->
         </div>
     </div>
 </body>
