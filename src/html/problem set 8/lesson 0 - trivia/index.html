@@ -11,39 +11,6 @@
     <meta name="viewport" content="initial-scale=1, width=device-width">
 
     <title>Trivia!</title>
-    <script>
-        function hideansweralert(tagid) {
-            if (document.getElementById(tagid).style.display != "none") {
-                document.getElementById(tagid).style.display = "none";
-            }
-        }
-
-        function correct(button) {
-            hideansweralert("part1tagincorrect");
-            button.style.backgroundColor = "green";
-            document.getElementById("part1tagcorrect").style.display = "inline";
-        }
-
-        function incorrect(button) {
-            hideansweralert("part1tagcorrect");            
-            button.style.backgroundColor = "red";
-            document.getElementById("part1tagincorrect").style.display = "inline";
-        }
-
-        function checkinput(input) {
-            let string = document.getElementById("inputfield").value;
-            if (string == "Light") {
-                hideansweralert("part2tagincorrect");
-                document.getElementById("inputfield").style.backgroundColor = "green";
-                document.getElementById("part2tagcorrect").style.display = "inline";
-            }
-            else {
-                hideansweralert("part2tagcorrect");
-                document.getElementById("inputfield").style.backgroundColor = "red";
-                document.getElementById("part2tagincorrect").style.display = "inline";
-            }
-        }
-    </script>
 </head>
 <body>
     <div class="header">
@@ -60,21 +27,49 @@
                 <li><button type="submit" onclick="incorrect(this);">19</button></li>
                 <li><button type="submit" onclick="incorrect(this);">31</button></li>
             </ol>
-            <p style="display:none" id="part1tagcorrect">Correct!</p>
-            <p style="display:none" id="part1tagincorrect">Incorrect</p>
+            <p id="qOneFeedback" style="visibility:hidden">place holder</p>
         </div>
-        
+
         <div class="section">
             <h2>Part 2: Free Response</h2>
             <hr>
             <h3>In Final Fantasy XIV the player character is often referred to as the 'Warrior Of' what?</h3>
-            <form onsubmit="checkinput(this); return false;">
+            <form id="qTwoForm">
                 <input type="text" id="inputfield" autocomplete="off" placeholder="answer">
-                <button>Check Answer</button>
+                <button type="submit">Check Answer</button>
             </form>
-            <p style="display:none" id="part2tagcorrect">Correct!</p>
-            <p style="display:none" id="part2tagincorrect">Incorrect</p>
+            <p id="qTwoFeedback" style="visibility:hidden">place holder</p>
         </div>
     </div>
+    <script>
+        function correct(button) {
+            button.style.backgroundColor = "green";
+            document.getElementById("qOneFeedback").innerText = "Correct!";
+            document.getElementById("qOneFeedback").style.visibility = "visible";
+        }
+
+        function incorrect(button) {
+            button.style.backgroundColor = "red";
+            document.getElementById("qOneFeedback").innerText = "Incorrect";
+            document.getElementById("qOneFeedback").style.visibility = "visible";
+        }
+
+        document.getElementById("qTwoForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let string = document.getElementById("inputfield").value;
+
+            if (string.toLowerCase() === "light") {
+                document.getElementById("inputfield").style.backgroundColor = "green";
+                document.getElementById("qTwoFeedback").innerText = "Correct!";
+                document.getElementById("qTwoFeedback").style.visibility = "visible";
+            }
+            else {
+                document.getElementById("inputfield").style.backgroundColor = "red";
+                document.getElementById("qTwoFeedback").innerText = "Incorrect";
+                document.getElementById("qTwoFeedback").style.visibility = "visible";
+            }
+        });
+    </script>
 </body>
 </html>
