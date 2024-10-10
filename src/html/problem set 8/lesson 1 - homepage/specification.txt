@@ -1,8 +1,22 @@
 Summary:
-boop
+I utelized several bootstrap components as is like the navbar and accordion and modified the alert component with some Javascript to create interactive elements for my pages.
 
 HTML Tags:
-boop
+01. meta
+02. link
+03. nav
+04. div
+05. a
+06. button
+07. span
+08. ul
+09. h1
+10. p
+
 
 CSS Properties:
-boop
+1. background-repeat: no-repeat;
+2. color: teal;
+3. text-align: justify;
+4. padding-left: 1rem;
+5. text-decoration-line: none;
