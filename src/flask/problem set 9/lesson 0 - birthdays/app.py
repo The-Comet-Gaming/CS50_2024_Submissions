@@ -49,7 +49,7 @@ def index():
             day = int(day)
         except ValueError:
             return redirect("/")
-        if day < 1 or day > max_days_in_month[month]:
+        if day < 1 or day > max_days_in_month[month - 1]:
             return redirect("/")
 
         # Insert data into database
@@ -120,7 +120,7 @@ def edit_confirmed():
         day = int(day)
     except ValueError:
         return redirect("/")
-    if day < 1 or day > max_days_in_month[month]:
+    if day < 1 or day > max_days_in_month[month - 1]:
         return redirect("/")
 
     db.execute("UPDATE birthdays SET name = ?, month = ?, day = ? WHERE id = ?", name, month, day, id)
