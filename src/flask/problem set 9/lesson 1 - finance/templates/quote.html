@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Quote
+{% endblock %}
+
+{% block main %}
+    <form action="/quote" method="post">
+        <div class="input-group mb-3">
+            <input autofocus class="form-control mx-auto w-auto" name="symbol" placeholder="Stock Symbol" type="text">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
+    {% if request.method == 'POST' %}
+        <p>Stock: {{ results['name'] }}</p>
+        <p>Price: {{ results['price'] }}</p>
+        <p>Symbol: <a href="/quote">{{ results['symbol'] }}</a></p>
+    {% endif %}
+{% endblock %}
