@@ -57,12 +57,59 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    # Require that a user input a number of shares, implemented as a text field whose name is shares.
-        # Render an apology if the input is not a positive integer.
+    # Sub route for users who have been directed to the route from /quote by using the "stock_symbol" button
+    if request.method == "POST" and "/quote" in request.headers.get("Referer"):
+        stock_symbol = request.form.get("stock_symbol")
+        return render_template("buy.html", symbol=stock_symbol)
 
-    # Submit the user’s input via POST to /buy.
+    # Sub route for users who are directed to the route from /buy by using the "Buy Shares" button
+    if request.method == "POST" and "/buy" in request.headers.get("Referer"):
+        symbol = request.form.get("symbol")
+        if not symbol:
+            flash("Enter valid Symbol")
+            return apology("Missing Input")
 
-    # Upon completion, redirect the user to the home page.
+        results = lookup(symbol)
+        if not results:
+            flash("Enter valid Symbol")
+            return apology("Missing Input")
+
+        shares = int(request.form.get("shares"))
+        if shares < 1:
+                flash("Must input positive number of shares to buy")
+                return apology("Missing Input")
+
+        user_id = session.get("user_id")
+        cash = float(db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"])
+        # might need to convert this ^ into this for readability purposes:
+        # cash = db.execute("SELECT cash FROM users WHERE id = ?", session.get("user_id")
+        # cash = float(cash[0]["cash"])
+        price = results["price"]
+        if cash < price:
+            flash("Add more cash to your account so that you can continue trading!")
+            return apology("Insufficient Funds")
+
+        # cash_transaction db assigning
+            # db.execute(
+            # "INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type)
+            # VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)", user_id, "Acc. Registration Bonus", 10000.00, "deposit"
+            # )
+            # possible format to reduce line length? ^
+        # stock_id = db.execute("SELECT id FROM stocks WHERE symbol = ?", symbol)
+        # stock_transaction db assigning first
+            # db.execute(
+            # "INSERT INTO stock_transactions (user_id, stock_id, date, number_of_stocks, amount_per_stock, transaction_type)
+            # VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)", user_id, "Acc. Registration Bonus", 10000.00, "deposit"
+            # )
+        # shares db assigning
+
+        flash("Shares Bought!")
+        #return redirect("/")
+        return render_template("buy.html")
+
+    return render_template("buy.html")
+
+
 
     # Odds are you’ll want to call lookup to look up a stock’s current price.
 
@@ -80,8 +127,6 @@ def buy():
     # Render an apology, without completing a purchase, if the user cannot afford the number of shares at the current price.
 
     # You don’t need to worry about race conditions (or use transactions).
-
-    return apology("TODO")
 
 
 @app.route("/history")
@@ -103,7 +148,7 @@ def history():
         # and the date and time at which the transaction occurred.
 
     # You might need to alter the table you created for buy or supplement it with an additional table. Try to minimize redundancies.
-    
+
     return apology("TODO")
 
 
@@ -164,14 +209,17 @@ def quote():
     if request.method == "POST":
         symbol = request.form.get("symbol")
         if not symbol:
+            flash("Enter valid Symbol")
             return redirect("/quote")
 
         results = lookup(symbol)
+        if not results:
+            flash("Enter valid Symbol")
+            return redirect("/quote")
 
         try:
             db.execute("INSERT INTO stocks (name, symbol) VALUES (?, ?)", results["name"], results["symbol"])
             print("stock profile added to db")
-        # might need to remove these lines below
         except ValueError:
             print("stock profile was not added to db")
 
