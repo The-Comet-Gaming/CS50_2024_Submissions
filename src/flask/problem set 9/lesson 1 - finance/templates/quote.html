@@ -15,8 +15,9 @@
     </form>
 
     {% if request.method == 'POST' %}
-        <p>Stock: {{ results['name'] }}</p>
-        <p>Price: {{ results['price'] }}</p>
-        <p>Symbol: <a href="/quote">{{ results['symbol'] }}</a></p>
+        <form action="/buy" method="post">
+            <p><button class="btn btn-secondary" type="submit"><b>{{ results['name'] }} ({{ results['symbol'] }})</b></button></p>
+        </form>
+        <p><b>Price per Share: </b>{{ results['price'] | usd }}</p>
     {% endif %}
 {% endblock %}
