@@ -63,70 +63,73 @@ def buy():
         return render_template("buy.html", symbol=stock_symbol)
 
     # Sub route for users who are directed to the route from /buy by using the "Buy Shares" button
-    if request.method == "POST" and "/buy" in request.headers.get("Referer"):
+    if request.method == "POST" and request.path == "/buy":
         symbol = request.form.get("symbol")
         if not symbol:
             flash("Enter valid Symbol")
-            return apology("Missing Input")
+            return apology("Missing Input", 403)
 
         results = lookup(symbol)
         if not results:
             flash("Enter valid Symbol")
-            return apology("Missing Input")
+            return apology("Missing Input", 403)
 
-        shares = int(request.form.get("shares"))
-        if shares < 1:
-                flash("Must input positive number of shares to buy")
-                return apology("Missing Input")
+        shares = request.form.get("shares")
+        if not shares:
+            flash("Must input positive number of shares to buy")
+            return apology("Missing Input", 403)
+
+        else:
+            shares = int(shares)
+            if shares < 1:
+                    flash("Must input positive number of shares to buy")
+                    return apology("Missing Input", 403)
+            # check to see if this ^ if statement is redundant because of the the min="1" tag in the buy.html
 
         user_id = session.get("user_id")
         cash = float(db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"])
-        # might need to convert this ^ into this for readability purposes:
+    # might need to convert this ^ into this for readability purposes:
         # cash = db.execute("SELECT cash FROM users WHERE id = ?", session.get("user_id")
         # cash = float(cash[0]["cash"])
         price = results["price"]
-        if cash < price:
-            flash("Add more cash to your account so that you can continue trading!")
+        total_price = price * shares
+        if cash < total_price:
+            flash("Add more 'cash' to your account so that you can continue trading!")
             return apology("Insufficient Funds")
 
+        else:
+            db.execute("UPDATE users SET cash = ? WHERE id = ?", cash - total_price, user_id,)
+
         # cash_transaction db assigning
-            # db.execute(
-            # "INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type)
-            # VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)", user_id, "Acc. Registration Bonus", 10000.00, "deposit"
-            # )
-            # possible format to reduce line length? ^
-        # stock_id = db.execute("SELECT id FROM stocks WHERE symbol = ?", symbol)
+        description = "Bought x"+str(shares)+" "+results["name"]+" @ "+usd(price)
+        db.execute(
+            "INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type) VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)",
+            user_id, description, total_price, "withdrawal"
+        )
+
         # stock_transaction db assigning first
-            # db.execute(
-            # "INSERT INTO stock_transactions (user_id, stock_id, date, number_of_stocks, amount_per_stock, transaction_type)
-            # VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)", user_id, "Acc. Registration Bonus", 10000.00, "deposit"
-            # )
+        stock_id = db.execute("SELECT id FROM stocks WHERE symbol = ?", symbol)[0]["id"]
+        db.execute(
+            "INSERT INTO stock_transactions (user_id, stock_id, date, number_of_stocks, amount_per_stock, transaction_type) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?)",
+            user_id, stock_id, shares, price, "buy"
+        )
+
         # shares db assigning
+        row = db.execute("SELECT * FROM shares WHERE user_id = ? AND stock_id = ?", user_id, stock_id)
+        if not row:
+            db.execute("INSERT INTO shares (user_id, stock_id, number_of_stocks) VALUES (?, ?, ?)", user_id, stock_id, shares)
+
+        else:
+            db.execute(
+                "UPDATE shares SET number_of_stocks = ? WHERE user_id = ? AND stock_id = ?",
+                shares + row[number_of_stocks], user_id, stock_id
+            )
 
         flash("Shares Bought!")
-        #return redirect("/")
+        return redirect("/")
+
+    else:
         return render_template("buy.html")
-
-    return render_template("buy.html")
-
-
-
-    # Odds are you’ll want to call lookup to look up a stock’s current price.
-
-    # Odds are you’ll want to SELECT how much cash the user currently has in users.
-
-    # Add one or more new tables to finance.db via which to keep track of the purchase.
-        # Store enough information so that you know who bought what at what price and when.
-
-    # Use appropriate SQLite types.
-
-    # Define UNIQUE indexes on any fields that should be unique.
-
-    # Define (non-UNIQUE) indexes on any fields via which you will search (as via SELECT with WHERE).
-
-    # Render an apology, without completing a purchase, if the user cannot afford the number of shares at the current price.
-
-    # You don’t need to worry about race conditions (or use transactions).
 
 
 @app.route("/history")
@@ -217,11 +220,9 @@ def quote():
             flash("Enter valid Symbol")
             return redirect("/quote")
 
-        try:
+        row = db.execute("SELECT * FROM stocks WHERE name = ?", results["name"])
+        if not row:
             db.execute("INSERT INTO stocks (name, symbol) VALUES (?, ?)", results["name"], results["symbol"])
-            print("stock profile added to db")
-        except ValueError:
-            print("stock profile was not added to db")
 
         return render_template("quote.html", results=results, request=request)
 
