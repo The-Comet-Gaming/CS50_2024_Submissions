@@ -35,22 +35,29 @@ def after_request(response):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    # Complete the implementation of index in such a way that it displays an HTML table summarizing, for the user currently logged in,
-        # which stocks the user owns,
+    user_id = session.get("user_id")
+    grand_total = cash = db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"]
+    results = db.execute(
+        "SELECT stocks.symbol, shares.number_of_stocks FROM stocks INNER JOIN shares ON stocks.id=shares.stock_id WHERE shares.user_id = ?",
+        user_id
+    )
+    if not results:
+        return render_template("index.html", cash=cash, grand_total=grand_total)
 
-        # the numbers of shares owned,
+    rows = []
+    for result in results:
+        share_price = lookup(result["symbol"])["price"]
+        total_price = share_price * result["number_of_stocks"]
+        print(share_price, total_price)
 
-        # the current price of each stock,
+        row = {"symbol": result["symbol"], "shares": result["number_of_stocks"],
+            "share_price": share_price, "total_price": total_price}
+        print(row)
 
-        # and the total value of each holding (i.e., shares times price).
+        rows.append(row)
+        grand_total = grand_total + total_price
 
-    # Also display the user’s current cash balance along with a grand total (i.e., stocks’ total value plus cash).
-
-    # Odds are you’ll want to execute multiple SELECTs.
-        # Depending on how you implement your table(s), you might find GROUP BY HAVING SUM and/or WHERE of interest.
-
-    # Odds are you’ll want to call lookup for each stock.
-    return apology("TODO")
+    return render_template("index.html", rows=rows, cash=cash, grand_total=grand_total)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -115,14 +122,14 @@ def buy():
         )
 
         # shares db assigning
-        row = db.execute("SELECT * FROM shares WHERE user_id = ? AND stock_id = ?", user_id, stock_id)
+        row = db.execute("SELECT * FROM shares WHERE user_id = ? AND stock_id = ?", user_id, stock_id)[0]
         if not row:
             db.execute("INSERT INTO shares (user_id, stock_id, number_of_stocks) VALUES (?, ?, ?)", user_id, stock_id, shares)
 
         else:
             db.execute(
                 "UPDATE shares SET number_of_stocks = ? WHERE user_id = ? AND stock_id = ?",
-                shares + row[number_of_stocks], user_id, stock_id
+                shares + row["number_of_stocks"], user_id, stock_id
             )
 
         flash("Shares Bought!")
