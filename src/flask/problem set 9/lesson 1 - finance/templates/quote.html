@@ -17,7 +17,7 @@
     {% if request.method == 'POST' %}
         <form action="/buy" method="post">
             <p>
-                <button class="btn btn-secondary" name="stock_symbol" type="submit" value="{{ results['symbol'] }}">
+                <button class="btn btn-secondary" name="searched_symbol" type="submit" value="{{ results['symbol'] }}">
                     <b>{{ results['name'] }} ({{ results['symbol'] }})</b>
                 </button>
             </p>
