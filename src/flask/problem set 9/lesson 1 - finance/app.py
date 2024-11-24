@@ -37,11 +37,27 @@ def after_request(response):
 def index():
     """Show portfolio of stocks"""
     user_id = session.get("user_id")
-    grand_total = cash = db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"]
-    results = db.execute(
-        "SELECT stocks.symbol, shares.number_of_stocks FROM stocks INNER JOIN shares ON stocks.id=shares.stock_id WHERE shares.user_id = ?",
-        user_id
-    )
+    try:
+        try:
+            cash_row = db.execute(
+                "SELECT cash FROM users WHERE id = ?",
+                user_id
+            )
+        except:
+            raise Exception("Database call unsuccessful")
+
+        grand_total = cash = cash_row[0]["cash"]
+
+        try:
+            results = db.execute(
+                "SELECT stocks.symbol, shares.number_of_stocks FROM stocks INNER JOIN shares ON stocks.id=shares.stock_id WHERE shares.user_id = ? AND shares.number_of_stocks > 0",
+                user_id
+            )
+        except:
+            raise Exception("Database call unsuccessful")
+    except Exception as ex:
+        return apology(ex, 400)
+
     if not results:
         return render_template("index.html", cash=cash, grand_total=grand_total)
 
@@ -51,9 +67,9 @@ def index():
         total_price = share_price * result["number_of_stocks"]
 
         row = {"symbol": result["symbol"], "shares": result["number_of_stocks"],
-            "share_price": share_price, "total_price": total_price}
-
+               "share_price": share_price, "total_price": total_price}
         rows.append(row)
+
         grand_total = grand_total + total_price
 
     return render_template("index.html", rows=rows, cash=cash, grand_total=grand_total)
@@ -64,121 +80,120 @@ def index():
 def buy():
     """Buy shares of stock"""
     if request.method == "POST" and request.path == "/buy":
-        symbol = request.form.get("symbol")
-        if not symbol:
-            flash("Stock Symbol Required")
-            return apology("Missing Input", 400)
+        results = lookup(request.form.get("symbol"))
+        if not results:
+            return apology("Enter valid stock symbol", 400)
 
         shares = request.form.get("shares")
+        if not shares:
+            return apology("Missing Input", 400)
+
         try:
-            shares = floor(float(shares))
+            shares = int(shares)
+            if not isinstance(shares, int):
+                return apology("Enter valid input", 400)
         except:
-            flash ("Enter valid number of shares")
-            return apology("Enter Valid Input", 400)
+            return apology("Enter valid input", 400)
 
-        if shares < 1:
-            flash ("Enter valid number")
-            return apology("Enter Valid Input", 400)
-
-        result = lookup(symbol)
-        if not result:
-            flash ("Enter valid symbol")
-            return apology("Enter Valid Input", 400)
+        if shares <= 0:
+            return apology("enter positive number", 400)
 
         user_id = session.get("user_id")
         if not user_id:
             return apology("User not found", 400)
 
         try:
-            cash_row = db.execute(
-                "SELECT cash FROM users WHERE id = ?",
-                user_id
+            # select available cash in account
+            try:
+                cash_row = db.execute(
+                    "SELECT cash FROM users WHERE id = ?",
+                    user_id
                 )
-        except:
-            return apology("Data not found", 400)
-
-        cash = float(cash_row[0]["cash"])
-        if cash < result["price"]:
-            flash("Add more 'cash' to your account so that you can continue trading!")
-            return apology("Insufficient Funds", 403)
-
-        try:
-            stock_row = db.execute(
-                "SELECT id FROM stocks WHERE symbol = ?",
-                result["symbol"]
-                )
-        except:
-            try:
-                db.execute(
-                    "INSERT INTO stocks (id, stock_name, symbol) VALUES (?, ?)",
-                    result["name"], result["symbol"]
-                    )
-                stock_row = db.execute(
-                    "SELECT id FROM stocks WHERE symbol = ?",
-                    result["symbol"]
-                    )
+                cash = float(cash_row[0]["cash"])
             except:
-                return apology("Data not found", 400)
+                raise Exception("Cash data could not be retrieved")
 
-        stock_id = stock_row[0]["id"]
-        shares_total_price = shares * result["price"]
-        cash_balance = cash - shares_total_price
-        description = "Bought x"+str(shares)+" "+result["name"]+" ("+result["symbol"]+") "+usd(result["price"])
+            grand_total = results["price"] * shares
+            # check if cash is > than grand_total
+            if cash < grand_total:
+                return apology("Insufficient funds for transaction")
 
-        try:
+            description = "Bought x" + \
+                str(shares)+" "+results["name"] + \
+                " ("+results["symbol"]+") @ "+str(usd(results["price"]))
+            # insert cash_transaction
             try:
-                # stock_transactions
-                db.execute(
-                    "INSERT INTO stock_transactions (user_id, stock_id, date, number_of_stocks, amount_per_stock, transaction_type) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?)",
-                    user_id, stock_id, shares, result[price], "buy"
-                    )
-            except:
-                return apology("#1")
-
-            try:
-                # cash_transactions
                 db.execute(
                     "INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type) VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)",
-                    user_id, description, result[price], "withdrawal"
-                    )
+                    user_id, description, grand_total, "withdrawal"
+                )
             except:
-                return apology("#2")
+                raise Exception("Cash transaction could not be recorded")
 
+            # remove cash spent from user
+            new_cash_value = cash - grand_total
             try:
-                # users (cash)
                 db.execute(
                     "UPDATE users SET cash = ? WHERE id = ?",
-                    cash_balance, user_id
-                    )
-            except:
-                return apology("#3")
-
-            # shares
-            try:
-                share_row = db.execute(
-                    "SELECT id, number_of_stocks FROM shares WHERE stock_id = (SELECT id FROM stocks WHERE symbol = ?) AND user_id = ?",
-                    result["symbol"], user_id
-                    )
-            except:
-                try:
-                    db.execute(
-                        "INSERT INTO shares (id, user_id, stock_id, number_of_stocks) VALUES (?, ?, ?)",
-                        user_id, stock_id, 0
-                        )
-                    share_row = db.execute(
-                        "SELECT id, number_of_stocks FROM shares WHERE stock_id = (SELECT id FROM stocks WHERE symbol = ?) AND user_id = ?",
-                        result["symbol"], user_id
-                        )
-                except:
-                    return apology("Unable to complete transaction", 400)
-
-            db.execute(
-                "UPDATE shares SET number_of_stocks = ? WHERE id = ?",
-                share_row[0]["number_of_stocks"] + shares, share_row[0]["id"]
+                    new_cash_value, user_id
                 )
+            except:
+                raise Exception("Account funds could not be removed from account")
 
-        except:
-            return apology("Unable to complete transaction", 400)
+            # stock symbol db
+            try:
+                stock_row = db.execute(
+                    "SELECT id FROM stocks WHERE symbol = ?",
+                    results["symbol"]
+                )
+                if not stock_row:
+                    db.execute(
+                        "INSERT INTO stocks (name, symbol) VALUES (?, ?)",
+                        results["name"], results["symbol"]
+                    )
+                    stock_row = db.execute(
+                        "SELECT id FROM stocks WHERE symbol = ?",
+                        results["symbol"]
+                    )
+                stock_id = stock_row[0]["id"]
+            except:
+                raise Exception("Stock data could not be retrieved")
+
+            # insert stock_transaction db
+            try:
+                db.execute(
+                    "INSERT INTO stock_transactions (user_id, stock_id, date, number_of_stocks, amount_per_stock, transaction_type) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?)",
+                    user_id, stock_id, shares, results["price"], "buy"
+                )
+            except:
+                raise Exception("Stock transaction could not be recorded")
+
+            # shares db
+            try:
+                shares_row = db.execute(
+                    "SELECT number_of_stocks FROM shares WHERE user_id = ? AND stock_id = ?",
+                    user_id, stock_id
+                )
+                if not shares_row:
+                    db.execute(
+                        "INSERT INTO shares (user_id, stock_id, number_of_stocks) VALUES (?, ?, ?)",
+                        user_id, stock_id, shares
+                    )
+                else:
+                    updated_shares_amount = shares + shares_row[0]["number_of_stocks"]
+                    db.execute(
+                        "UPDATE shares SET number_of_stocks = ? WHERE user_id = ? AND stock_id = ?",
+                        updated_shares_amount, user_id, stock_id
+                    )
+            except:
+                raise Exception("Shares data could not be updated")
+        except Exception as ex:
+            return apology(ex, 400)
+
+        if shares > 1:
+            flash("Shares Bought!")
+        else:
+            flash("Share Bought!")
 
         return redirect("/")
 
@@ -192,27 +207,178 @@ def buy():
     return render_template("buy.html")
 
 
+@app.route("/cash", methods=["GET", "POST"])
+@login_required
+def cash():
+    user_id = session.get("user_id")
+
+    if request.method == "POST":
+        added_cash = request.form.get("cash")
+        if not added_cash:
+            return apology("Missing Input", 400)
+
+        try:
+            added_cash = float(added_cash)
+            if not isinstance(added_cash, float):
+                return apology("Enter valid input", 400)
+        except:
+            return apology("Enter valid input", 400)
+
+        if added_cash <= 0:
+            return apology("Enter positive number", 400)
+
+        try:
+            # select available cash in account
+            try:
+                cash_row = db.execute(
+                    "SELECT cash FROM users WHERE id = ?",
+                    user_id
+                )
+                current_cash = float(cash_row[0]["cash"])
+            except:
+                raise Exception("Cash data could not be retrieved")
+
+            new_cash_amount = current_cash + added_cash
+            # insert cash_transaction
+            try:
+                db.execute(
+                    "INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type) VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)",
+                    user_id, "Added cash to Acc.", added_cash, "deposit"
+                )
+            except:
+                raise Exception("Cash transaction could not be recorded")
+
+            try:
+                db.execute(
+                    "UPDATE users SET cash = ? WHERE id = ?",
+                    new_cash_amount, user_id
+                )
+            except:
+                raise Exception("Cash data could not be updated")
+        except Exception as ex:
+            return apology(ex, 400)
+
+        flash("Cash added to account!")
+        return redirect("/cash")
+    else:
+        # get rows data for cash_history
+        try:
+            results = db.execute(
+                "SELECT date, description, amount, transaction_type FROM cash_transactions WHERE user_id = ?",
+                user_id
+            )
+        except:
+            return apology("Could not access database at this time", 400)
+
+        if not results:
+            return render_template("cash.html")
+
+        rows = []
+        running_total = 0
+        for result in results:
+            if result["transaction_type"] == "deposit":
+                running_total = running_total + result["amount"]
+            else:
+                running_total = running_total - result["amount"]
+
+            row = {"date": result["date"], "description": result["description"], "amount": result["amount"],
+                   "running_total": running_total, "transaction_type": result["transaction_type"]}
+            rows.append(row)
+
+        return render_template("cash.html", rows=rows, grand_total=running_total)
+
+
+@app.route("/change_password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    if request.method == "POST":
+        password = request.form.get("password")
+        if not password:
+            return apology("must provide password", 400)
+
+        confirmation = request.form.get("confirmation")
+        if not confirmation:
+            return apology("must confirm password", 400)
+        elif password != confirmation:
+            return apology("passwords must match", 400)
+
+        user_id = session.get("user_id")
+        try:
+            rows = db.execute(
+                "SELECT * FROM users WHERE id = ?",
+                user_id
+            )
+        except:
+            return apology("Could not retrieve data from db", 400)
+
+        # Ensure username exists and password is correct
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], password):
+            return apology("Could not process request", 405)
+
+        return redirect("/confirm_change_password")
+    else:
+        return render_template("password.html")
+
+
+@app.route("/confirm_change_password", methods=["GET", "POST"])
+@login_required
+def confirm_change_password():
+    if request.method == "POST":
+        password = request.form.get("password")
+        if not password:
+            return apology("must provide password", 400)
+
+        confirmation = request.form.get("confirmation")
+        if not confirmation:
+            return apology("must confirm password", 400)
+        elif password != confirmation:
+            return apology("passwords must match", 400)
+
+        user_id = session.get("user_id")
+        try:
+            rows = db.execute(
+                "SELECT * FROM users WHERE id = ?",
+                user_id
+            )
+        except:
+            return apology("Could not retrieve data from db", 400)
+
+        # Ensure username exists and password is correct
+        if len(rows) != 1 or check_password_hash(rows[0]["hash"], password):
+            return apology("New password cannot be the same as an old password", 405)
+
+        try:
+            db.execute(
+                "UPDATE users SET hash = ? WHERE id = ?",
+                generate_password_hash(password), user_id
+            )
+        except:
+            return apology("Database cannot be reached at this time", 400)
+
+        flash("Password changed!")
+        return redirect("/")
+    else:
+        return render_template("password.html")
+
+
 @app.route("/history")
 @login_required
 def history():
     """Show history of transactions"""
-    # Complete the implementation of history in such a way that it displays an HTML table
-        # summarizing all of a user’s transactions ever,
+    user_id = session.get("user_id")
 
-        # listing row by row each and every buy and every sell.
+    try:
+        rows = db.execute(
+            "SELECT stock_transactions.date, stocks.symbol, stock_transactions.number_of_stocks, stock_transactions.amount_per_stock, stock_transactions.transaction_type FROM stock_transactions INNER JOIN stocks ON stock_transactions.stock_id=stocks.id WHERE stock_transactions.user_id = ?",
+            user_id
+        )
+    except:
+        return apology("Could not access database at this time", 400)
 
-    # For each row, make clear whether a stock was bought or sold and include
-        # the stock’s symbol,
+    if not rows:
+        return render_template("history.html")
 
-        # the (purchase or sale) price,
-
-        # the number of shares bought or sold,
-
-        # and the date and time at which the transaction occurred.
-
-    # You might need to alter the table you created for buy or supplement it with an additional table. Try to minimize redundancies.
-
-    return apology("TODO")
+    return render_template("history.html", rows=rows)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -230,7 +396,7 @@ def login():
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return apology("must provide password", 403)
+            return apology("must provide password", 404)
 
         # Query database for username
         rows = db.execute(
@@ -238,10 +404,8 @@ def login():
         )
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(
-            rows[0]["hash"], request.form.get("password")
-        ):
-            return apology("invalid username and/or password", 403)
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+            return apology("invalid username and/or password", 405)
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
@@ -270,22 +434,11 @@ def logout():
 def quote():
     """Get stock quote."""
     if request.method == "POST":
-        symbol = request.form.get("symbol")
-        if not symbol:
-            flash("Enter valid Symbol")
-            return apology("Missing Input", 400)
-
-        results = lookup(symbol)
+        results = lookup(request.form.get("symbol"))
         if not results:
-            flash("Enter valid Symbol")
-            return apology("Missing Input", 400)
+            return apology("Enter valid Symbol", 400)
 
-        row = db.execute("SELECT * FROM stocks WHERE name = ?", results["name"])
-        if not row:
-            db.execute("INSERT INTO stocks (name, symbol) VALUES (?, ?)", results["name"], results["symbol"])
-
-        return render_template("quote.html", results=results, request=request)
-
+        return render_template("quote.html", results=results)
     else:
         return render_template("quote.html")
 
@@ -308,15 +461,38 @@ def register():
         elif password != confirmation:
             return apology("passwords must match", 400)
 
+        acc_create_error_msg = "Account creation has failed please try again later"
+
         try:
-            db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", username, generate_password_hash(password))
-        except ValueError:
-            return apology("username already exists", 400)
+            try:
+                db.execute(
+                    "INSERT INTO users (username, hash) VALUES (?, ?)",
+                    username, generate_password_hash(password)
+                )
+            except ValueError:
+                return apology(acc_create_error_msg, 400)
 
-        user_id = db.execute("SELECT id FROM users WHERE username = ?", username)[0]["id"]
-        db.execute("INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type) VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)", user_id, "Acc. Registration Bonus", 10000.00, "deposit")
+            try:
+                user_id_row = db.execute(
+                    "SELECT id FROM users WHERE username = ?",
+                    username
+                )
 
-        return redirect("/")
+                user_id = user_id_row[0]["id"]
+            except:
+                raise IndexError(acc_create_error_msg)
+
+            try:
+                db.execute(
+                    "INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type) VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)",
+                    user_id, "Acc. Registration Bonus", 10000.00, "deposit"
+                )
+            except:
+                raise Exception(acc_create_error_msg)
+        except Exception as ex:
+            return apology(ex, 400)
+        else:
+            return redirect("/")
 
     else:
         return render_template("register.html")
@@ -329,59 +505,127 @@ def sell():
     user_id = session.get("user_id")
 
     if request.method == "POST":
-        symbol = request.form.get("symbol")
-        if not symbol:
-            flash("Select a symbol from the dropdown select input")
-            return apology("Missing Input", 403)
+        results = lookup(request.form.get("symbol"))
+        if not results:
+            flash("Stock symbol required")
+            return apology("Select valid stock symbol", 400)
 
         shares = request.form.get("shares")
         if not shares:
-            flash("Input positive number of shares")
-            return apology("Missing Input", 403)
+            return apology("Missing shares input", 400)
 
-        shares = int(shares)
-        if shares < 1:
-            flash("Input positive number of shares")
-            return apology("Missing Input", 403)
+        try:
+            shares = int(shares)
+            if not isinstance(shares, int):
+                return apology("Enter whole number for shares input", 400)
+        except:
+            return apology("Enter valid shares input", 400)
 
-        row = db.execute(
-            "SELECT stocks.*, shares.number_of_stocks FROM stocks INNER JOIN shares ON stocks.id=shares.stock_id WHERE shares.user_id = ? AND stocks.symbol = ? AND shares.number_of_stocks >= 1",
-            user_id, symbol
-        )[0]
-        if not row:
-            return apology("You do not own any shares of that stock", 403)
+        if shares <= 0:
+            return apology("Enter positive number", 400)
 
-        if shares > row["number_of_stocks"]:
-            return apology("You do not own that many shares", 403)
+        try:
+            # stock symbol db
+            try:
+                stock_row = db.execute(
+                    "SELECT id FROM stocks WHERE symbol = ?",
+                    results["symbol"]
+                )
+                if not stock_row:
+                    return apology("Stock data could not be retrieved", 400)
 
-        # do the db manipulation
-        price = lookup(row["symbol"])["price"]
-        db.execute(
-            "INSERT INTO stock_transactions (user_id, stock_id, date, number_of_stocks, amount_per_stock, transaction_type) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?)",
-            user_id, row["id"], shares, price, "sell"
-        )
+                stock_id = stock_row[0]["id"]
+            except:
+                raise Exception("Could not connect to database for stock_id retrieval")
 
-        description = "Sold x"+str(shares)+" "+row["name"]+" @ "+usd(price)
-        total_price = price * shares
-        db.execute(
-            "INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type) VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)",
-            user_id, description, total_price, "deposit"
-        )
+            try:
+                shares_row = db.execute(
+                    "SELECT number_of_stocks FROM shares WHERE user_id = ? AND stock_id = ?",
+                    user_id, stock_id
+                )
+                if not shares_row:
+                    return apology("Shares data could not be retrieved", 400)
 
-        cash = float(db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"])
-        db.execute("UPDATE users SET cash = ? WHERE id = ?", cash + total_price, user_id,)
+                number_of_stocks = shares_row[0]["number_of_stocks"]
+            except:
+                raise Exception("Could not connect to database for number of shares retrieval")
+        except Exception as ex:
+            return apology(ex, 400)
 
-        db.execute("UPDATE shares SET number_of_stocks = ? WHERE user_id = ? AND stock_id = ?", row["number_of_stocks"] - shares, user_id, row["id"])
+        # check if symbol is one that user owns any shares off
+        if number_of_stocks < shares:
+            return apology("Insufficient number of shares to sell", 400)
 
-        flash("Stock Sold! (not really)")
+        try:
+            # insert stock_transaction db
+            try:
+                db.execute(
+                    "INSERT INTO stock_transactions (user_id, stock_id, date, number_of_stocks, amount_per_stock, transaction_type) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?)",
+                    user_id, stock_id, shares, results["price"], "sell"
+                )
+            except:
+                raise Exception("Stock transaction could not be recorded")
+
+            # shares db
+            try:
+                shares_row = db.execute(
+                    "SELECT number_of_stocks FROM shares WHERE user_id = ? AND stock_id = ?",
+                    user_id, stock_id
+                )
+                if not shares_row:
+                    return apology("Shares data could not be retrieved")
+                else:
+                    updated_shares_amount = shares_row[0]["number_of_stocks"] - shares
+                    db.execute(
+                        "UPDATE shares SET number_of_stocks = ? WHERE user_id = ? AND stock_id = ?",
+                        updated_shares_amount, user_id, stock_id
+                    )
+            except:
+                raise Exception("Shares data could not be updated")
+
+            grand_total = results["price"] * shares
+            description = "Sold x" + \
+                str(shares)+" "+results["name"] + \
+                " ("+results["symbol"]+") @ "+str(usd(results["price"]))
+            # insert cash_transaction
+            try:
+                db.execute(
+                    "INSERT INTO cash_transactions (user_id, date, description, amount, transaction_type) VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?)",
+                    user_id, description, grand_total, "deposit"
+                )
+            except:
+                raise Exception("Cash transaction could not be recorded")
+
+            # select available cash in account
+            try:
+                cash_row = db.execute(
+                    "SELECT cash FROM users WHERE id = ?",
+                    user_id
+                )
+                cash = float(cash_row[0]["cash"])
+            except:
+                raise Exception("Cash data could not be retrieved")
+
+            # add cash paid out to user
+            new_cash_value = cash + grand_total
+            try:
+                db.execute(
+                    "UPDATE users SET cash = ? WHERE id = ?",
+                    new_cash_value, user_id
+                )
+            except:
+                raise Exception("Account funds could not be removed from account")
+        except Exception as ex:
+            return apology(ex, 400)
+
         return redirect("/")
-
     else:
-        symbols = db.execute(
-            "SELECT stocks.symbol FROM stocks INNER JOIN shares ON stocks.id=shares.stock_id WHERE shares.user_id = ?",
-            user_id
-        )
-        if not symbols:
-            return render_template("sell.html")
+        try:
+            symbols = db.execute(
+                "SELECT symbol FROM stocks INNER JOIN shares ON stocks.id = shares.stock_id WHERE user_id = ?",
+                user_id
+            )
+        except:
+            return apology("Database could not be reached", 400)
 
         return render_template("sell.html", symbols=symbols)

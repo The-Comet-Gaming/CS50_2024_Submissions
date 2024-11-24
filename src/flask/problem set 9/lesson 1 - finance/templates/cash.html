@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Cash
+{% endblock %}
+
+{% block main %}
+    <form action="/cash" method="post">
+        <div class="input-group mb-3">
+            <input autofocus class="form-control mx-auto w-auto" name="cash" placeholder="Cash" min="1" number="text">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Add Cash</button>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th class="text-start">Date</th>
+                <th class="text-end">Description</th>
+                <th class="text-end">Amount</th>
+                <th class="text-end">Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% if rows %}
+                {% for row in rows %}
+                    <tr>
+                        <td class="text-start">{{ row["date"] }}</td>
+                        <td class="text-end">{{ row["description"] }}</td>
+                        {% if row["transaction_type"] == 'deposit' %}
+                            <td class="text-end buy-deposit">+{{ row["amount"] | usd }}</td>
+                        {% else %}
+                            <td class="text-end sell-withdrawal">-{{ row["amount"] | usd }}</td>
+                        {% endif %}
+                        <td class="text-end">{{ row["running_total"] | usd }}</td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <td class="border-0 fw-bold text-end" colspan="3">TOTAL</td>
+                <td class="border-0 w-bold text-end">{{ grand_total | usd }}</td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}
