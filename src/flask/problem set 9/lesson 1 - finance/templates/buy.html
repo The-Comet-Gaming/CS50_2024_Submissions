@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Buy
+{% endblock %}
+
+{% block main %}
+    <form action="/buy" method="POST">
+        <div class="mb-3">
+            {% if request.method == 'POST' and "/quote" in request.headers.get("Referer") %}
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="symbol" placeholder="Stock Symbol" type="text" value="{{ symbol }}">
+            {% else %}
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="symbol" placeholder="Stock Symbol" type="text">
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control mx-auto w-auto" min="1" name="shares" placeholder="Shares" type="number">
+        </div>
+
+        <button class="btn btn-primary" type="submit">Buy</button>
+    </form>
+{% endblock %}
